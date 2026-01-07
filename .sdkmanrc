@@ -1,0 +1,4 @@
+# SDKMAN! candidates for this project.
+# Use: sdk env install && sdk env
+java=21.0.2-tem
+gradle=8.7
