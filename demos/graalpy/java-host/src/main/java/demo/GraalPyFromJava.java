@@ -11,12 +11,13 @@ public final class GraalPyFromJava {
 
       context.eval(
           "python",
-          ""
-              + "def greet(name):\n"
-              + "    return f'hello, {name} (from python)'\n"
-              + "\n"
-              + "def scale(xs, k):\n"
-              + "    return [x * k for x in xs]\n");
+          """
+          def greet(name):
+              return f'hello, {name} (from python)'
+
+          def scale(xs, k):
+              return [x * k for x in xs]
+          """);
 
       Value bindings = context.getBindings("python");
       Value greet = bindings.getMember("greet");
