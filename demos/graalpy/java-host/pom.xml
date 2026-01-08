@@ -8,7 +8,7 @@
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
-    <graalvm.version>23.1.2</graalvm.version>
+    <graalvm.version>24.0.1</graalvm.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
