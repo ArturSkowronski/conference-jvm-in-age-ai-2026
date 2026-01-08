@@ -11,9 +11,7 @@ def main() -> None:
 
     n = 2_000_000
     t0 = time.time()
-    s = 0
-    for i in range(n):
-        s += i
+    s = sum(range(n))
     t1 = time.time()
     print(f"sum(0..{n-1}) = {s} (took {(t1 - t0):.3f}s)")
 
