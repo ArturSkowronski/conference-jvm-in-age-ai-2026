@@ -1,5 +1,7 @@
 # conference-jvm-in-age-ai-2026
 
+Demo materials:
+- `demos/graalpy/` — GraalPy quickstart + Java interop demos
 Java playground scaffold intended for quick experiments with different JVMs and JDK versions (Temurin, GraalVM, TornadoVM, etc.).
 
 ## Prereqs
