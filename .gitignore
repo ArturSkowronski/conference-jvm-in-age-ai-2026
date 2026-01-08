@@ -1,3 +1,9 @@
+**/build/
+**/out/
+**/.gradle/
+**/.idea/
+**/*.iml
+.DS_Store
 .gradle/
 build/
 out/
