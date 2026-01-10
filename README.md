@@ -3,6 +3,7 @@
 ## Dema
 
 - `tornadovm-demo/` – proste demo TornadoVM (baseline vs TaskGraph)
+- `demos/jcuda/` — JCuda support demo (CUDA driver + device info)
 
 Demo materials:
 - `demos/graalpy/` — GraalPy quickstart + Java interop demos
