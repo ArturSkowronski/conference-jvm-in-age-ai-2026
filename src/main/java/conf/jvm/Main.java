@@ -1,6 +1,7 @@
 package conf.jvm;
 
 import conf.jvm.jcuda.JCudaInfoDemo;
+import conf.jvm.tensorflow.TensorFlowDemo;
 
 public final class Main {
   public static void main(String[] args) {
@@ -22,6 +23,10 @@ public final class Main {
           return;
         }
       }
+
+     if (args.length > 0 && args[0].equalsIgnoreCase("tensorflow")) {
+      TensorFlowDemo.run();
+      return;
     }
 
     System.out.println("Hello from Java!");

@@ -29,6 +29,19 @@ This repo includes a `.sdkmanrc`. In the repo root:
 - Change the `java=` entry in `.sdkmanrc`, then `sdk env install && sdk env`
 - Or override Gradle’s toolchain version: `gradle run -PjavaVersion=23`
 
+## TensorFlow (FFM, no JNI / no Python)
+
+This repo includes a small demo of calling the TensorFlow C API from Java (using the Foreign Function & Memory API).
+
+Run:
+
+- `gradle runTensorFlow`
+- Or with your own TensorFlow build: `gradle runTensorFlow -PtensorflowHome=/path/to/unpacked/libtensorflow`
+
+Notes:
+- The build downloads the TensorFlow C library into `build/tensorflow/` automatically.
+- Prebuilt TensorFlow C libraries here are x86_64 only; on Apple Silicon run an x86_64 JDK (Rosetta) or pass `-PtensorflowHome=/path/to/unpacked/libtensorflow`.
+
 ## GraalVM / Native Image
 
 - Install GraalVM via SDKMAN! (set `java=` to a GraalVM distribution) and re-run `sdk env`
