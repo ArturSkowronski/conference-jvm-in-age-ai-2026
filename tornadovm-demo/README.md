@@ -1,34 +1,33 @@
-# Demo: TornadoVM (JVM → GPU/CPU akceleracja)
+# Demo: TornadoVM (JVM → GPU/CPU acceleration)
 
-To jest małe, samowystarczalne demo do pokazania podczas prelekcji: to samo obliczenie uruchomione jako zwykła Java (baseline) oraz jako zadanie TornadoVM (TaskGraph).
+This is a small, self-contained demo for the talk: the same computation run as plain Java (baseline) and as a TornadoVM task (TaskGraph).
 
-## Wymagania
+## Requirements
 
-- **Baseline**: dowolny JDK 17+.
-- **TornadoVM**: zainstalowany TornadoVM (np. przez SDKMAN) + działające sterowniki OpenCL/CUDA.
+- **Baseline**: any JDK 17+.
+- **TornadoVM**: TornadoVM installed (e.g. via SDKMAN) + working OpenCL/CUDA drivers.
 
-Szybka weryfikacja urządzeń (jeśli masz `tornado` w `PATH`):
+Quick device check (if you have `tornado` in `PATH`):
 ```bash
 tornado --devices
 ```
 
-## Uruchomienie
+## Running
 
-### 1) Baseline (bez TornadoVM)
+### 1) Baseline (without TornadoVM)
 ```bash
 ./scripts/run-baseline.sh --size 10000000 --iters 10
 ```
 
 ### 2) TornadoVM
-Ustaw `TORNADO_SDK` na katalog instalacji TornadoVM (opcjonalnie, jeśli już używasz TornadoVM jako `JAVA_HOME`):
+Set `TORNADO_SDK` to your TornadoVM installation directory (optional if you're already using TornadoVM as `JAVA_HOME`):
 ```bash
 export TORNADO_SDK=~/path/to/tornadovm
 ./scripts/run-tornado.sh --size 10000000 --iters 10
 ```
 
-## Co pokazuje demo
+## What this demo shows
 
-- Kernel w Javie + adnotacja `@Parallel`.
-- Budowa `TaskGraph`, snapshot i `TornadoExecutionPlan`.
-- Różnica czasów między baseline i wykonaniem TornadoVM (zależnie od urządzenia/driverów).
-
+- A Java kernel + the `@Parallel` annotation.
+- Building a `TaskGraph`, taking a snapshot, and running a `TornadoExecutionPlan`.
+- Timing difference between baseline and TornadoVM execution (depends on device/drivers).

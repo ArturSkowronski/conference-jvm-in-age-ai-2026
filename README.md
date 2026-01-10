@@ -2,7 +2,7 @@
 
 ## Demos
 
-- `tornadovm-demo/` – proste demo TornadoVM (baseline vs TaskGraph)
+- `tornadovm-demo/` – simple TornadoVM demo (baseline vs TaskGraph)
 - `demos/jcuda/` — JCuda support demo (CUDA driver + device info)
 - `demos/tensorflow-ffm/` — TensorFlow C API via FFM (no JNI / no Python)
 
