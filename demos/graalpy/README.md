@@ -48,12 +48,10 @@ graalpy python/03_polyglot_api.py
 
 ## 4) Embed GraalPy in Java (Polyglot API)
 
-Build + run using Maven (will download compile-time dependencies):
+Build + run using Gradle (will download compile-time dependencies):
 
 ```bash
-cd java-host
-mvn -q -DskipTests package
-mvn -q exec:java -Dexec.mainClass=demo.GraalPyFromJava
+./gradlew :demos:graalpy-java-host:run
 ```
 
 Notes:

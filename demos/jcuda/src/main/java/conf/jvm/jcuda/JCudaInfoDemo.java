@@ -14,6 +14,10 @@ import static jcuda.driver.JCudaDriver.cuInit;
 public final class JCudaInfoDemo {
   private JCudaInfoDemo() {}
 
+  public static void main(String[] args) {
+    run();
+  }
+
   public static void run() {
     System.out.println("== JCuda device info ==");
     System.out.println("os.name=" + System.getProperty("os.name"));

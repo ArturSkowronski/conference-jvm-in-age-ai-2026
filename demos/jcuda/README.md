@@ -11,5 +11,4 @@ This demo prints basic CUDA driver + device information via **JCuda**.
 
 From repo root:
 
-- `gradle run --args='jcuda-info'`
-
+- `./gradlew :demos:jcuda:run`

@@ -7,6 +7,10 @@ import java.lang.foreign.ValueLayout;
 public final class TensorFlowDemo {
   private TensorFlowDemo() {}
 
+  public static void main(String[] args) {
+    run();
+  }
+
   public static void run() {
     try (TensorFlowC tf = TensorFlowC.load()) {
       System.out.println("TensorFlow via FFM (C API)");
