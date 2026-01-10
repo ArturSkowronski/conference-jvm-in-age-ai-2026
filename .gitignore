@@ -3,6 +3,7 @@
 **/.gradle/
 **/.idea/
 **/*.iml
+**/target/
 .DS_Store
 .gradle/
 build/

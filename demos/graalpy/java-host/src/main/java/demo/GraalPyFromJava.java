@@ -1,33 +1,23 @@
 package demo;
 
-import java.util.List;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 
 public final class GraalPyFromJava {
   public static void main(String[] args) {
-    try (Context context =
-        Context.newBuilder("python").allowAllAccess(true).build()) {
+    try (Context ctx = Context.newBuilder("python").build()) {
+      Value version = ctx.eval("python", "import sys; sys.version");
+      System.out.println("python.version=" + version.asString());
 
-      context.eval(
-          "python",
-          """
-          def greet(name):
-              return f'hello, {name} (from python)'
-
-          def scale(xs, k):
-              return [x * k for x in xs]
-          """);
-
-      Value bindings = context.getBindings("python");
-      Value greet = bindings.getMember("greet");
-      Value scale = bindings.getMember("scale");
-
-      System.out.println(greet.execute("JVM").asString());
-
-      List<Integer> input = List.of(1, 2, 3, 4);
-      Value out = scale.execute(input, 10);
-      System.out.println("scale([1,2,3,4], 10) -> " + out.toString());
+      Value result = ctx.eval("python", "1.5 + 2.25");
+      System.out.println("1.5 + 2.25 = " + result.asDouble());
+    } catch (PolyglotException e) {
+      System.err.println("GraalPy not available at runtime.");
+      System.err.println("Make sure you're running with a GraalVM JDK that has GraalPy installed (gu install graalpy).");
+      System.err.println();
+      throw e;
     }
   }
 }
+
