@@ -55,6 +55,76 @@ jobs:
       - name: Compile + run baseline
         run: ./tornadovm-demo/scripts/run-baseline.sh --size 100000 --iters 1 --warmup 0
 
+  tornadovm-taskgraph:
+    name: TornadoVM demo (TaskGraph; best-effort run)
+    runs-on: ubuntu-latest
+    env:
+      TORNADOVM_VERSION: "2.2.0"
+      TORNADOVM_FLAVOR: "opencl"
+      TORNADOVM_OS: "linux"
+      TORNADOVM_ARCH: "amd64"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache TornadoVM download
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/tornadovm
+          key: tornadovm-${{ runner.os }}-${{ env.TORNADOVM_VERSION }}-${{ env.TORNADOVM_FLAVOR }}-${{ env.TORNADOVM_ARCH }}
+
+      - name: Download TornadoVM
+        shell: bash
+        run: |
+          set -euo pipefail
+          filename="tornadovm-${TORNADOVM_VERSION}-${TORNADOVM_FLAVOR}-${TORNADOVM_OS}-${TORNADOVM_ARCH}.tar.gz"
+          url="https://github.com/beehive-lab/TornadoVM/releases/download/v${TORNADOVM_VERSION}/${filename}"
+          dest_dir="${RUNNER_TEMP}/tornadovm"
+          mkdir -p "${dest_dir}"
+          dest="${dest_dir}/${filename}"
+
+          if [[ ! -f "${dest}" ]]; then
+            curl -fL "${url}" -o "${dest}"
+          fi
+
+          rm -rf "${dest_dir}/extracted"
+          mkdir -p "${dest_dir}/extracted"
+          tar -xzf "${dest}" -C "${dest_dir}/extracted"
+
+          tornado_sdk="$(find "${dest_dir}/extracted" -maxdepth 4 -type f -path '*/bin/javac' -print -quit | xargs -r dirname | xargs -r dirname)"
+          if [[ -z "${tornado_sdk}" || ! -x "${tornado_sdk}/bin/java" ]]; then
+            echo "Could not locate TornadoVM JDK in extracted archive." >&2
+            find "${dest_dir}/extracted" -maxdepth 4 -type f -path '*/bin/java' -o -path '*/bin/javac' -print >&2 || true
+            exit 1
+          fi
+
+          echo "TORNADO_SDK=${tornado_sdk}" >> "${GITHUB_ENV}"
+
+      - name: TornadoVM JDK info
+        shell: bash
+        run: |
+          set -euo pipefail
+          "${TORNADO_SDK}/bin/java" -version
+          "${TORNADO_SDK}/bin/javac" -version
+
+      - name: Compile TornadoVM demo (TaskGraph)
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_dir="tornadovm-demo/build/tornado-ci"
+          src_dir="tornadovm-demo/src/tornado/java"
+          rm -rf "${build_dir}"
+          mkdir -p "${build_dir}/mods"
+          find "${src_dir}" -name "*.java" > "${build_dir}/sources.txt"
+          "${TORNADO_SDK}/bin/javac" -d "${build_dir}/mods/demo.tornadovm" @"${build_dir}/sources.txt"
+
+      - name: Run TornadoVM demo (best effort; may require GPU/OpenCL drivers)
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_dir="tornadovm-demo/build/tornado-ci"
+          "${TORNADO_SDK}/bin/java" --module-path "${build_dir}/mods" -m demo.tornadovm/demo.tornadovm.VectorAddTornado --size 100000 --iters 1 --warmup 0 --no-verify
+
   jcuda:
     name: JCuda (compile + run)
     runs-on: ubuntu-latest
@@ -75,4 +145,3 @@ jobs:
 
       - name: Run JCuda demo
         run: ./gradlew :demos:jcuda:run --no-daemon
-
