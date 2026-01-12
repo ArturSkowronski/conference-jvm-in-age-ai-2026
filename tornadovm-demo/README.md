@@ -26,6 +26,21 @@ export TORNADO_SDK=~/path/to/tornadovm
 ./scripts/run-tornado.sh --size 10000000 --iters 10
 ```
 
+### 3) GPULlama3 (real LLM inference on GPU)
+
+This uses the upstream project `beehive-lab/GPULlama3.java` (cloned + built automatically into `tornadovm-demo/build/`).
+
+Requirements:
+- TornadoVM installed (JDK 21), with working OpenCL/CUDA drivers.
+- Python 3 (to run the upstream `llama-tornado` launcher).
+- A local `.gguf` model file (not bundled).
+
+Run:
+```bash
+export TORNADO_SDK=~/path/to/tornadovm
+./scripts/run-gpullama3.sh --model /path/to/model.gguf --prompt "tell me a joke"
+```
+
 ## What this demo shows
 
 - A Java kernel + the `@Parallel` annotation.
