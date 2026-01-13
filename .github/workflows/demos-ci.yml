@@ -25,6 +25,12 @@ jobs:
           java-version: "21"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Add GraalVM tools to PATH
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${JAVA_HOME}/bin" >> "${GITHUB_PATH}"
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -32,7 +38,19 @@ jobs:
         run: chmod +x gradlew
 
       - name: Install Python (GraalPy)
-        run: gu install python
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v gu >/dev/null 2>&1; then
+            gu install python
+          elif [[ -x "${JAVA_HOME}/bin/gu" ]]; then
+            "${JAVA_HOME}/bin/gu" install python
+          else
+            echo "Could not find 'gu' (GraalVM Updater)." >&2
+            echo "JAVA_HOME=${JAVA_HOME}" >&2
+            ls -la "${JAVA_HOME}/bin" >&2 || true
+            exit 1
+          fi
 
       - name: Run GraalPy Java host demo
         run: ./gradlew :demos:graalpy-java-host:run --no-daemon
