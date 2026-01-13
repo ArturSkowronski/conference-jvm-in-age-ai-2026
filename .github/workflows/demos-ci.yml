@@ -90,10 +90,17 @@ jobs:
           mkdir -p "${dest_dir}/extracted"
           tar -xzf "${dest}" -C "${dest_dir}/extracted"
 
-          tornado_sdk="$(find "${dest_dir}/extracted" -maxdepth 4 -type f -path '*/bin/javac' -print -quit | xargs -r dirname | xargs -r dirname)"
+          javac_path="$(find "${dest_dir}/extracted" -maxdepth 8 -path '*/bin/javac' -print -quit || true)"
+          tornado_sdk=""
+          if [[ -n "${javac_path}" ]]; then
+            tornado_sdk="$(dirname "$(dirname "${javac_path}")")"
+          fi
           if [[ -z "${tornado_sdk}" || ! -x "${tornado_sdk}/bin/java" ]]; then
             echo "Could not locate TornadoVM JDK in extracted archive." >&2
-            find "${dest_dir}/extracted" -maxdepth 4 -type f -path '*/bin/java' -o -path '*/bin/javac' -print >&2 || true
+            echo "Archive top-level:" >&2
+            ls -la "${dest_dir}/extracted" >&2 || true
+            echo "bin/java|bin/javac candidates:" >&2
+            find "${dest_dir}/extracted" -maxdepth 8 \( -path '*/bin/java' -o -path '*/bin/javac' \) -print >&2 || true
             exit 1
           fi
 
