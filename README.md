@@ -43,9 +43,19 @@ Run:
 - `./gradlew :demos:tensorflow-ffm:runTensorFlow`
 - Or with your own TensorFlow build: `./gradlew :demos:tensorflow-ffm:runTensorFlow -PtensorflowHome=/path/to/unpacked/libtensorflow`
 
+### Supported Platforms
+
+| Platform | Status |
+|----------|--------|
+| Linux x86_64 | ✅ Supported |
+| macOS ARM64 (Apple Silicon) | ✅ Supported |
+| Windows x86_64 | ✅ Supported |
+| macOS x86_64 (Intel) | ❌ Not supported |
+
+**Why no macOS x86_64?** TensorFlow dropped support for Intel Macs after version 2.16.2. This demo uses TensorFlow 2.18.0 for consistency across all platforms. If you need macOS x86_64 support, provide your own TF C library via `-PtensorflowHome=...`.
+
 Notes:
-- The build downloads the TensorFlow C library into `build/tensorflow/` automatically.
-- Prebuilt TensorFlow C libraries here are x86_64 only; on Apple Silicon run an x86_64 JDK (Rosetta) or pass `-PtensorflowHome=/path/to/unpacked/libtensorflow`.
+- The build downloads the TensorFlow C library (v2.18.0) into `build/tensorflow/` automatically.
 
 ## GraalVM (notes)
 

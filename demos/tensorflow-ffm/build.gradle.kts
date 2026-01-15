@@ -21,9 +21,9 @@ application {
   )
 }
 
-// TensorFlow version depends on platform:
-// - ARM64 macOS: 2.18.0 (last version with ARM64 prebuilt binaries)
-// - x86_64: 2.15.0 (or override via -PtensorflowVersion=X.Y.Z)
+// TensorFlow 2.18.0 is used on all platforms for consistency.
+// macOS x86_64 is NOT supported - TensorFlow dropped x86_64 macOS support after 2.16.2.
+val tensorflowVersion = providers.gradleProperty("tensorflowVersion").orElse("2.18.0")
 val tensorflowHomeOverride = providers.gradleProperty("tensorflowHome")
 
 data class TfArchive(val url: String, val fileName: String, val isZip: Boolean)
@@ -34,38 +34,42 @@ fun tensorflowArchiveForCurrentPlatform(): TfArchive {
 
   val isX86_64 = arch == "x86_64" || arch == "amd64"
   val isArm64 = arch == "aarch64" || arch == "arm64"
+  val version = tensorflowVersion.get()
+  val baseUrl = "https://storage.googleapis.com/tensorflow/versions/$version"
 
-  val platform = when {
-    os.contains("mac") || os.contains("darwin") -> "darwin"
-    os.contains("win") -> "windows"
-    os.contains("nux") || os.contains("linux") -> "linux"
-    else -> error("Unsupported OS for TensorFlow demo: os.name=$os os.arch=$arch")
-  }
+  return when {
+    // macOS ARM64 (Apple Silicon)
+    (os.contains("mac") || os.contains("darwin")) && isArm64 -> {
+      val fileName = "libtensorflow-cpu-darwin-arm64.tar.gz"
+      TfArchive("$baseUrl/$fileName", fileName, isZip = false)
+    }
 
-  // ARM64 macOS uses TensorFlow 2.18.0 with different URL format
-  if (platform == "darwin" && isArm64) {
-    val version = providers.gradleProperty("tensorflowVersion").orElse("2.18.0").get()
-    val fileName = "libtensorflow-cpu-darwin-arm64.tar.gz"
-    val url = "https://storage.googleapis.com/tensorflow/versions/$version/$fileName"
-    return TfArchive(url, fileName, isZip = false)
-  }
+    // macOS x86_64 - NOT SUPPORTED (TensorFlow dropped support after 2.16.2)
+    (os.contains("mac") || os.contains("darwin")) && isX86_64 -> {
+      error("""
+        macOS x86_64 is not supported by this demo.
+        TensorFlow dropped x86_64 macOS support after version 2.16.2.
 
-  if (!isX86_64) {
-    error("TensorFlow prebuilt C library for $platform requires x86_64 (got os.arch=$arch). " +
-      "Provide your own TF C library via -PtensorflowHome=...")
-  }
+        Options:
+        - Use Apple Silicon (ARM64) Mac
+        - Use Linux x86_64
+        - Provide your own TF C library via -PtensorflowHome=...
+      """.trimIndent())
+    }
 
-  val version = providers.gradleProperty("tensorflowVersion").orElse("2.15.0").get()
-  val baseUrl = "https://storage.googleapis.com/tensorflow/libtensorflow"
+    // Linux x86_64
+    os.contains("linux") && isX86_64 -> {
+      val fileName = "libtensorflow-cpu-linux-x86_64.tar.gz"
+      TfArchive("$baseUrl/$fileName", fileName, isZip = false)
+    }
 
-  return when (platform) {
-    "windows" -> TfArchive("$baseUrl/libtensorflow-cpu-windows-x86_64-$version.zip",
-                           "libtensorflow-cpu-windows-x86_64-$version.zip", isZip = true)
-    "linux" -> TfArchive("$baseUrl/libtensorflow-cpu-linux-x86_64-$version.tar.gz",
-                         "libtensorflow-cpu-linux-x86_64-$version.tar.gz", isZip = false)
-    "darwin" -> TfArchive("$baseUrl/libtensorflow-cpu-darwin-x86_64-$version.tar.gz",
-                          "libtensorflow-cpu-darwin-x86_64-$version.tar.gz", isZip = false)
-    else -> error("unreachable")
+    // Windows x86_64
+    os.contains("win") && isX86_64 -> {
+      val fileName = "libtensorflow-cpu-windows-x86_64.zip"
+      TfArchive("$baseUrl/$fileName", fileName, isZip = true)
+    }
+
+    else -> error("Unsupported platform: os.name=$os os.arch=$arch")
   }
 }
 
