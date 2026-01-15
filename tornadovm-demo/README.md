@@ -20,9 +20,9 @@ tornado --devices
 ```
 
 ### 2) TornadoVM
-Set `TORNADO_SDK` to your TornadoVM installation directory (optional if you're already using TornadoVM as `JAVA_HOME`):
+Set `TORNADOVM_HOME` to your TornadoVM installation directory (optional - the script auto-downloads TornadoVM SDK if not set):
 ```bash
-export TORNADO_SDK=~/path/to/tornadovm
+export TORNADOVM_HOME=~/path/to/tornadovm
 ./scripts/run-tornado.sh --size 10000000 --iters 10
 ```
 
@@ -37,7 +37,7 @@ Requirements:
 
 Run:
 ```bash
-export TORNADO_SDK=~/path/to/tornadovm
+export TORNADOVM_HOME=~/path/to/tornadovm
 ./scripts/run-gpullama3.sh --model /path/to/model.gguf --prompt "tell me a joke"
 ```
 
