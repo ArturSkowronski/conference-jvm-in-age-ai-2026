@@ -8,6 +8,7 @@
 .gradle/
 build/
 out/
+claude/settings.local.json
 
 # IntelliJ
 .idea/
