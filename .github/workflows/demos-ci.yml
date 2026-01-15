@@ -33,7 +33,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build GraalPy Java host demo
-        run: ./gradlew :demos:graalpy-java-host:classes --no-daemon
+        run: ./gradlew :demos:graalpy-java-host:classes -PjavaVersion=21 --no-daemon
 
       - name: Run GraalPy Java host demo (with GraalVM java)
         shell: bash
@@ -155,4 +155,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run JCuda demo
-        run: ./gradlew :demos:jcuda:run --no-daemon
+        run: ./gradlew :demos:jcuda:run -PjavaVersion=21 --no-daemon
