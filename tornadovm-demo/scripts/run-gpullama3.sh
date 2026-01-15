@@ -12,12 +12,14 @@ Usage:
 
 Notes:
   - Requires TornadoVM (JDK 21) installed.
-  - Set TORNADO_SDK (preferred) or TORNADOVM_HOME to your TornadoVM installation directory.
+  - Set TORNADOVM_HOME to your TornadoVM installation directory.
+  - Model must be in FP16 format (Q4_K_M and other quantized formats not supported).
   - The first run clones + builds https://github.com/beehive-lab/GPULlama3.java into tornadovm-demo/build/.
 
 Examples:
-  export TORNADO_SDK=~/.sdkman/candidates/java/22.1.0-tornadovm
-  ./scripts/run-gpullama3.sh --model ./beehive-llama-3.2-1b-instruct-fp16.gguf --prompt "say hello" --heap-max 6g
+  # Using auto-downloaded SDK (run-tornado.sh downloads it to build/tornadovm-sdk/):
+  export TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl
+  ./scripts/run-gpullama3.sh --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "say hello" --heap-max 6g
 EOF
 }
 
@@ -26,18 +28,24 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+# Support legacy TORNADO_SDK env var
 if [[ -n "${TORNADO_SDK:-}" && -z "${TORNADOVM_HOME:-}" ]]; then
   export TORNADOVM_HOME="$TORNADO_SDK"
 fi
 
 if [[ -z "${TORNADOVM_HOME:-}" ]]; then
-  echo "Missing TornadoVM path. Set TORNADO_SDK or TORNADOVM_HOME." >&2
+  echo "Missing TornadoVM path. Set TORNADOVM_HOME environment variable." >&2
   exit 2
 fi
 
+# Use TORNADOVM_HOME as JAVA_HOME if not set (for bundled JDK distributions)
 if [[ -z "${JAVA_HOME:-}" ]]; then
   export JAVA_HOME="$TORNADOVM_HOME"
 fi
+
+# Workaround for JVMCI compatibility issues between JDK versions
+# See: https://tornadovm.readthedocs.io/en/latest/faq.html
+export JVMCI_CONFIG_CHECK="${JVMCI_CONFIG_CHECK:-ignore}"
 
 if [[ ! -x "$JAVA_HOME/bin/java" ]]; then
   echo "JAVA_HOME does not look like a JDK: $JAVA_HOME" >&2
