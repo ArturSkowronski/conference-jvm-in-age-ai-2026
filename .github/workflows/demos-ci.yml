@@ -55,48 +55,62 @@ jobs:
   tornadovm-taskgraph:
     name: TornadoVM demo (TaskGraph; best-effort run)
     runs-on: ubuntu-latest
+    env:
+      TORNADOVM_VERSION: "2.2.0"
+      TORNADOVM_BACKEND: "opencl"
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SDKMAN and TornadoVM
+      - name: Set up Temurin JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download and extract TornadoVM SDK
         shell: bash
         run: |
           set -eo pipefail
-          curl -s "https://get.sdkman.io?rcupdate=false" | bash
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          echo "Available TornadoVM versions:"
-          sdk list tornadovm || true
-          sdk install java 21.0.5-tem
-          sdk install tornadovm 2.2.0-opencl
+          filename="tornadovm-${TORNADOVM_VERSION}-${TORNADOVM_BACKEND}-linux-amd64.tar.gz"
+          url="https://github.com/beehive-lab/TornadoVM/releases/download/v${TORNADOVM_VERSION}/${filename}"
+
+          echo "Downloading: ${url}"
+          curl -fL "${url}" -o "/tmp/${filename}"
+
+          mkdir -p "${RUNNER_TEMP}/tornadovm"
+          tar -xzf "/tmp/${filename}" -C "${RUNNER_TEMP}/tornadovm"
+
+          # Find the extracted SDK directory
+          TORNADO_SDK="$(find "${RUNNER_TEMP}/tornadovm" -maxdepth 1 -type d -name 'tornadovm-*' -print -quit)"
+          echo "TORNADO_SDK=${TORNADO_SDK}" >> "${GITHUB_ENV}"
+          echo "Found TORNADO_SDK: ${TORNADO_SDK}"
+          ls -la "${TORNADO_SDK}"
 
       - name: Show TornadoVM and JDK info
         shell: bash
         run: |
-          set -eo pipefail
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
           java -version
-          echo "TORNADO_SDK=$TORNADO_SDK"
+          echo "TORNADO_SDK=${TORNADO_SDK}"
+          ls -la "${TORNADO_SDK}/share/java/tornado/" || ls -la "${TORNADO_SDK}"
 
       - name: Compile TornadoVM demo (TaskGraph)
         shell: bash
         run: |
-          set -eo pipefail
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
           build_dir="tornadovm-demo/build/tornado-ci"
           src_dir="tornadovm-demo/src/tornado/java"
           rm -rf "${build_dir}"
           mkdir -p "${build_dir}/mods"
           find "${src_dir}" -name "*.java" > "${build_dir}/sources.txt"
 
+          # Find TornadoVM jars
           tornado_jars="$(find "${TORNADO_SDK}" -name '*.jar' -print0 | tr '\0' ':')"
+          echo "TornadoVM jars: ${tornado_jars}"
           javac --module-path "${tornado_jars}" -d "${build_dir}/mods/demo.tornadovm" @"${build_dir}/sources.txt"
 
       - name: Run TornadoVM demo (best effort; may require GPU/OpenCL drivers)
         continue-on-error: true
         shell: bash
         run: |
-          set -eo pipefail
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
           build_dir="tornadovm-demo/build/tornado-ci"
           tornado_jars="$(find "${TORNADO_SDK}" -name '*.jar' -print0 | tr '\0' ':')"
 
