@@ -64,8 +64,8 @@ jobs:
           set -eo pipefail
           curl -s "https://get.sdkman.io?rcupdate=false" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install java 21.0.5-graal
-          sdk install tornadovm 1.0.8-21.0.5.graal.opencl
+          sdk install java 21.0.5-tem
+          sdk install tornadovm 2.2.0-opencl
 
       - name: Show TornadoVM and JDK info
         shell: bash
