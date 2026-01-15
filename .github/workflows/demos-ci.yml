@@ -64,6 +64,8 @@ jobs:
           set -eo pipefail
           curl -s "https://get.sdkman.io?rcupdate=false" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
+          echo "Available TornadoVM versions:"
+          sdk list tornadovm || true
           sdk install java 21.0.5-tem
           sdk install tornadovm 2.2.0-opencl
 
