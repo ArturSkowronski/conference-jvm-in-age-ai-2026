@@ -32,8 +32,14 @@ jobs:
       - name: Ensure executable bits
         run: chmod +x gradlew
 
-      - name: Run GraalPy Java host demo
-        run: ./gradlew :demos:graalpy-java-host:run --no-daemon
+      - name: Build GraalPy Java host demo
+        run: ./gradlew :demos:graalpy-java-host:classes --no-daemon
+
+      - name: Run GraalPy Java host demo (with GraalVM java)
+        shell: bash
+        run: |
+          set -euo pipefail
+          "${JAVA_HOME}/bin/java" -cp "demos/graalpy/java-host/build/classes/java/main:demos/graalpy/java-host/build/resources/main" demo.GraalPyFromJava
 
   tornadovm-baseline:
     name: TornadoVM demo (baseline)
