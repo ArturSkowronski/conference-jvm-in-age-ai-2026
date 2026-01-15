@@ -105,7 +105,10 @@ jobs:
           # Find TornadoVM jars
           tornado_jars="$(find "${TORNADO_SDK}" -name '*.jar' -print0 | tr '\0' ':')"
           echo "TornadoVM jars: ${tornado_jars}"
-          javac --module-path "${tornado_jars}" -d "${build_dir}/mods/demo.tornadovm" @"${build_dir}/sources.txt"
+          javac --enable-preview --release 21 \
+                --module-path "${tornado_jars}" \
+                -d "${build_dir}/mods/demo.tornadovm" \
+                @"${build_dir}/sources.txt"
 
       - name: Run TornadoVM demo (best effort; may require GPU/OpenCL drivers)
         continue-on-error: true
@@ -114,7 +117,8 @@ jobs:
           build_dir="tornadovm-demo/build/tornado-ci"
           tornado_jars="$(find "${TORNADO_SDK}" -name '*.jar' -print0 | tr '\0' ':')"
 
-          java --module-path "${tornado_jars}:${build_dir}/mods" \
+          java --enable-preview \
+               --module-path "${tornado_jars}:${build_dir}/mods" \
                --add-modules ALL-MODULE-PATH \
                -m demo.tornadovm/demo.tornadovm.VectorAddTornado \
                --size 100000 --iters 1 --warmup 0 --no-verify
