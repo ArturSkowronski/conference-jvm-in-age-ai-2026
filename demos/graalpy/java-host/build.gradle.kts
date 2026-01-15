@@ -4,9 +4,12 @@ plugins {
 }
 
 dependencies {
-  // Only needed for compilation on non-GraalVM JDKs.
-  // At runtime we want to use the GraalVM-bundled Polyglot/Truffle classes to avoid version skew.
-  compileOnly("org.graalvm.sdk:graal-sdk:24.0.1")
+  // SDK for compilation
+  compileOnly("org.graalvm.sdk:graal-sdk:25.0.1")
+
+  // GraalPy runtime - needed since GraalVM 23+ no longer bundles Python
+  // This brings in the full Python runtime including Polyglot API implementation
+  runtimeOnly("org.graalvm.polyglot:python:25.0.1")
 }
 
 application {

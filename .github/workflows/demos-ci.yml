@@ -23,7 +23,6 @@ jobs:
         with:
           distribution: graalvm-community
           java-version: "21"
-          components: "python"
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Gradle
@@ -32,14 +31,8 @@ jobs:
       - name: Ensure executable bits
         run: chmod +x gradlew
 
-      - name: Build GraalPy Java host demo
-        run: ./gradlew :demos:graalpy-java-host:classes -PjavaVersion=21 --no-daemon
-
-      - name: Run GraalPy Java host demo (with GraalVM java)
-        shell: bash
-        run: |
-          set -euo pipefail
-          "${JAVA_HOME}/bin/java" -cp "demos/graalpy/java-host/build/classes/java/main:demos/graalpy/java-host/build/resources/main" demo.GraalPyFromJava
+      - name: Build and run GraalPy Java host demo
+        run: ./gradlew :demos:graalpy-java-host:run -PjavaVersion=21 --no-daemon
 
   tornadovm-baseline:
     name: TornadoVM demo (baseline)
