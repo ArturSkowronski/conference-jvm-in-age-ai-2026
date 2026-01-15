@@ -31,21 +31,25 @@ final class TensorFlowNative {
     String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     String marker = os.contains("win") ? ".dll" : (os.contains("mac") || os.contains("darwin")) ? ".dylib" : ".so";
 
-    Path framework = findBestMatch(libDir, "tensorflow_framework", marker).orElse(null);
-    Path tensorflow = findBestMatch(libDir, "tensorflow", marker)
-      .filter(p -> !p.getFileName().toString().toLowerCase(Locale.ROOT).contains("framework"))
+    Path framework = findBestMatch(libDir, "tensorflow_framework", marker, false).orElse(null);
+    // Use exact match for "libtensorflow" to avoid matching "libtensorflow_framework"
+    Path tensorflow = findBestMatch(libDir, "libtensorflow.", marker, true)
       .orElseThrow(() -> new IllegalStateException("Could not find libtensorflow (" + marker + "*) under " + libDir));
 
     return new Libraries(framework, tensorflow);
   }
 
-  private static Optional<Path> findBestMatch(Path libDir, String contains, String marker) {
+  private static Optional<Path> findBestMatch(Path libDir, String prefix, String marker, boolean excludeFramework) {
     try (Stream<Path> paths = Files.list(libDir)) {
       return paths
-        .filter(Files::isRegularFile)
+        .filter(p -> Files.isRegularFile(p) || Files.isSymbolicLink(p))
         .filter(p -> {
           String name = p.getFileName().toString().toLowerCase(Locale.ROOT);
-          return name.contains(contains) && name.contains(marker);
+          boolean matches = name.startsWith(prefix.toLowerCase(Locale.ROOT)) && name.contains(marker);
+          if (excludeFramework && name.contains("framework")) {
+            return false;
+          }
+          return matches;
         })
         .max(Comparator.comparing(p -> p.getFileName().toString()));
     } catch (IOException e) {

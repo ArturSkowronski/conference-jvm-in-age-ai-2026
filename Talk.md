@@ -33,9 +33,12 @@ java -version
 ### Expected output
 ```
 TensorFlow via FFM (C API)
-TF_Version=2.15.0
+TF_Version=2.18.0
 1.5 + 2.25 = 3.75
 ```
+
+> **Note**: On Apple Silicon, TensorFlow 2.18.0 is used (last version with ARM64 prebuilt binaries).
+> On x86_64, TensorFlow 2.15.0 is used by default.
 
 ### Key source file
 - `demos/tensorflow-ffm/src/main/java/conf/jvm/tensorflow/TensorFlowDemo.java`
@@ -210,21 +213,22 @@ achieved tok/s: 6.64. Tokens: 21, seconds: 3.16
 
 ## Summary
 
-| Demo | Technology | Key Feature |
-|------|------------|-------------|
-| TensorFlow FFM | Java 22+ FFM API | Native C library calls without JNI |
-| JCuda | JCuda bindings | Direct CUDA driver access |
-| GraalPy | GraalVM Polyglot | Python-Java interoperability |
-| TornadoVM | TornadoVM SDK | GPU acceleration with @Parallel |
+| Demo | Technology | Key Feature | Platform |
+|------|------------|-------------|----------|
+| TensorFlow FFM | Java 22+ FFM API | Native C library calls without JNI | x86_64, ARM64 |
+| JCuda | JCuda bindings | Direct CUDA driver access | NVIDIA GPU |
+| GraalPy | GraalVM Polyglot | Python-Java interoperability | All |
+| TornadoVM | TornadoVM SDK | GPU acceleration with @Parallel | OpenCL/CUDA |
 
 ---
 
 ## Troubleshooting
 
 ### TensorFlow FFM
-- Requires JDK 22+ (FFM is final)
-- **x86_64 only** - on Apple Silicon use Rosetta JDK or provide custom TF build
-- Error: `TensorFlow prebuilt C library in this demo supports x86_64 only`
+- Requires JDK 22+ (FFM is final in Java 22)
+- Supports both **x86_64** and **Apple Silicon (ARM64)**
+- ARM64 macOS uses TensorFlow 2.18.0 (last version with ARM64 prebuilt binaries)
+- Auto-downloads TensorFlow C library on first run
 
 ### JCuda
 - Requires NVIDIA GPU + CUDA driver
