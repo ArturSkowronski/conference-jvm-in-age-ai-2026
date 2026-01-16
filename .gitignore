@@ -19,3 +19,8 @@ claude/settings.local.json
 
 # macOS
 .DS_Store
+
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc
