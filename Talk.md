@@ -211,6 +211,67 @@ achieved tok/s: 6.64. Tokens: 21, seconds: 3.16
 
 ---
 
+## Demo 5: GraalPy Llama (Python LLM Inference)
+
+**Goal**: Show Python ML libraries running on GraalVM's Python implementation.
+
+### What it demonstrates
+- Running llama-cpp-python on GraalPy
+- Same GGUF model format as TornadoVM GPULlama3
+- Cross-language model sharing in the JVM ecosystem
+
+### Commands
+
+```bash
+cd demos/graalpy-llama
+
+# With GraalPy (currently blocked - see Known Limitation)
+./scripts/run-llama.sh --prompt "tell me a joke"
+
+# Workaround: Use CPython instead
+pip3 install llama-cpp-python
+python3 llama_inference.py --prompt "tell me a joke"
+```
+
+### Known Limitation
+
+GraalPy 25.0.1 fails with:
+```
+SystemError: ctypes: returning struct by value is not supported.
+```
+
+The [Truffle NFI](https://www.graalvm.org/latest/graalvm-as-a-platform/language-implementation-framework/NFI/) does not support struct return types, which `llama-cpp-python` requires.
+
+### Key source file
+- `demos/graalpy-llama/llama_inference.py`
+
+---
+
+## Performance Comparison: LLM Inference
+
+All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Silicon):
+
+| Approach | Language | Backend | Tokens/sec | Status |
+|----------|----------|---------|------------|--------|
+| TornadoVM GPULlama3 | Java | OpenCL (GPU) | ~6.6 | ✅ Working |
+| llama-cpp-python (CPython) | Python | llama.cpp (CPU+Metal) | ~10.0 | ✅ Working |
+| llama-cpp-python (GraalPy) | Python | llama.cpp | N/A | ❌ Blocked (ctypes) |
+
+### Observations
+
+- **CPython + llama.cpp** achieves higher throughput (~10 tok/s) due to Metal acceleration on Apple Silicon
+- **TornadoVM GPULlama3** runs pure Java on OpenCL (~6.6 tok/s), demonstrating JVM-native GPU inference
+- **GraalPy** blocked by ctypes limitation - waiting for Truffle NFI struct return support
+
+### Model Load Times
+
+| Approach | Model Load | First Token Latency |
+|----------|------------|---------------------|
+| TornadoVM GPULlama3 | ~5s | ~3s |
+| llama-cpp-python (CPython) | ~23s | ~5s |
+
+---
+
 ## Summary
 
 | Demo | Technology | Key Feature | Platform |
@@ -219,6 +280,7 @@ achieved tok/s: 6.64. Tokens: 21, seconds: 3.16
 | JCuda | JCuda bindings | Direct CUDA driver access | NVIDIA GPU |
 | GraalPy | GraalVM Polyglot | Python-Java interoperability | All |
 | TornadoVM | TornadoVM SDK | GPU acceleration with @Parallel | OpenCL/CUDA |
+| GraalPy Llama | GraalPy + llama-cpp | Python ML on GraalVM | Blocked (ctypes) |
 
 ---
 
