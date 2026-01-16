@@ -247,26 +247,89 @@ The [Truffle NFI](https://www.graalvm.org/latest/graalvm-as-a-platform/language-
 
 ---
 
+## Demo 6: java-llama.cpp (JNI Bindings for llama.cpp)
+
+**Goal**: Show pure Java LLM inference using JNI bindings to llama.cpp.
+
+### What it demonstrates
+- Java JNI bindings to llama.cpp
+- Same GGUF model format as other demos
+- Native performance with Java API convenience
+- Cross-platform support (Linux, macOS, Windows)
+
+### Commands
+
+```bash
+# Run with default model and prompt
+./gradlew :demos:java-llama-cpp:run
+
+# With custom prompt
+./gradlew :demos:java-llama-cpp:runLlama -Pprompt="Tell me a joke"
+
+# With custom model path
+./gradlew :demos:java-llama-cpp:runLlama -Pmodel=/path/to/model.gguf -Pprompt="Hello"
+```
+
+### Expected output
+
+```
+============================================================
+java-llama.cpp Inference Demo
+============================================================
+Java: 25
+VM: OpenJDK 64-Bit Server VM
+OS: Mac OS X aarch64
+============================================================
+
+Loading model: ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf
+Model loaded in 19.47s
+
+Prompt: Tell me a short joke about programming.
+----------------------------------------
+Response:
+Why do programmers prefer dark mode?
+
+Because light attracts bugs.
+----------------------------------------
+
+Stats:
+  Model load time: 19.47s
+  Inference time: 0.43s
+  Tokens generated: 18
+  Tokens/sec: 42.35
+```
+
+### Key source file
+- `demos/java-llama-cpp/src/main/java/conf/jvm/llama/JavaLlamaCppDemo.java`
+
+### References
+- [java-llama.cpp GitHub](https://github.com/kherud/java-llama.cpp)
+
+---
+
 ## Performance Comparison: LLM Inference
 
 All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Silicon):
 
 | Approach | Language | Backend | Tokens/sec | Status |
 |----------|----------|---------|------------|--------|
-| TornadoVM GPULlama3 | Java | OpenCL (GPU) | ~6.6 | ✅ Working |
+| java-llama.cpp | Java | llama.cpp (JNI+Metal) | ~47.0 | ✅ Working |
 | llama-cpp-python (CPython) | Python | llama.cpp (CPU+Metal) | ~10.0 | ✅ Working |
+| TornadoVM GPULlama3 | Java | OpenCL (GPU) | ~6.6 | ✅ Working |
 | llama-cpp-python (GraalPy) | Python | llama.cpp | N/A | ❌ Blocked (ctypes) |
 
 ### Observations
 
-- **CPython + llama.cpp** achieves higher throughput (~10 tok/s) due to Metal acceleration on Apple Silicon
-- **TornadoVM GPULlama3** runs pure Java on OpenCL (~6.6 tok/s), demonstrating JVM-native GPU inference
+- **java-llama.cpp** achieves highest throughput (~47 tok/s) - JNI bindings to llama.cpp with Metal GPU acceleration
+- **CPython + llama.cpp** good performance (~10 tok/s) with Metal acceleration on Apple Silicon
+- **TornadoVM GPULlama3** runs pure Java on OpenCL (~6.6 tok/s), demonstrating JVM-native GPU inference without native bindings
 - **GraalPy** blocked by ctypes limitation - waiting for Truffle NFI struct return support
 
 ### Model Load Times
 
 | Approach | Model Load | First Token Latency |
 |----------|------------|---------------------|
+| java-llama.cpp | ~19s | <1s |
 | TornadoVM GPULlama3 | ~5s | ~3s |
 | llama-cpp-python (CPython) | ~23s | ~5s |
 
@@ -281,6 +344,7 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 | GraalPy | GraalVM Polyglot | Python-Java interoperability | All |
 | TornadoVM | TornadoVM SDK | GPU acceleration with @Parallel | OpenCL/CUDA |
 | GraalPy Llama | GraalPy + llama-cpp | Python ML on GraalVM | Blocked (ctypes) |
+| java-llama.cpp | JNI bindings | LLM inference via llama.cpp | Linux, macOS, Windows |
 
 ---
 
