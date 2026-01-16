@@ -88,12 +88,29 @@ The `llama-cpp-python` library uses ctypes to call native `llama.cpp` functions.
 
 The underlying [Truffle NFI (Native Function Interface)](https://www.graalvm.org/latest/graalvm-as-a-platform/language-implementation-framework/NFI/) supports these types: `VOID`, `SINT*`, `UINT*`, `FLOAT`, `DOUBLE`, `POINTER`, `STRING`, `OBJECT`, `ENV` — but **struct types are not listed** as supported return values.
 
-### Workaround
+### Workaround (Tested ✓)
 
 Until GraalPy adds support for returning structs by value, you can run this demo with standard CPython instead:
 
 ```bash
+pip3 install llama-cpp-python
 python3 llama_inference.py --prompt "tell me a joke"
+```
+
+**Tested with CPython 3.13.0 on macOS ARM64:**
+
+| Metric | Value |
+|--------|-------|
+| Model load time | ~23s |
+| Inference time | ~5s |
+| Throughput | ~10 tokens/sec |
+
+Example output:
+```
+A man walked into a library and asked the librarian, "Do you have any
+books on Pavlov's dogs and Schrödinger's cat?"
+
+The librarian replied, "It rings a bell, but I'm not sure if it's here or not."
 ```
 
 ### References
