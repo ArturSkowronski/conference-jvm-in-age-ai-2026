@@ -255,23 +255,23 @@ check_tornadovm() {
 
     # Try to find and set TORNADOVM_HOME if not already set
     if [[ -z "${TORNADOVM_HOME:-}" ]]; then
-      local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
-      # Look for any TornadoVM SDK version
-      if [[ -d "$sdk_dir" ]]; then
-        local found_sdk
-        found_sdk=$(find "$sdk_dir" -maxdepth 1 -type d -name "tornadovm-*" | head -1)
-        if [[ -n "$found_sdk" && -d "$found_sdk" ]]; then
-          export TORNADOVM_HOME="$found_sdk"
-          log "Auto-detected TORNADOVM_HOME: $TORNADOVM_HOME"
-        fi
-      fi
-
-      # If still not found, download it
-      if [[ -z "${TORNADOVM_HOME:-}" ]]; then
+      local found_sdk
+      if found_sdk=$(find_tornadovm_home); then
+        export TORNADOVM_HOME="$found_sdk"
+        log "Auto-detected TORNADOVM_HOME: $TORNADOVM_HOME"
+      else
+        # If not found, download it
         download_tornadovm
       fi
     else
-      log "Using existing TORNADOVM_HOME: $TORNADOVM_HOME"
+      # Verify existing TORNADOVM_HOME is valid
+      if [[ ! -f "$TORNADOVM_HOME/etc/tornado.backend" ]]; then
+        warn "Invalid TORNADOVM_HOME: $TORNADOVM_HOME (missing etc/tornado.backend)"
+        unset TORNADOVM_HOME
+        download_tornadovm
+      else
+        log "Using existing TORNADOVM_HOME: $TORNADOVM_HOME"
+      fi
     fi
   else
     warn "TornadoVM scripts not found"
@@ -304,6 +304,13 @@ download_tornadovm() {
   local filename="tornadovm-${tornadovm_version}-${tornadovm_backend}-${platform}.tar.gz"
   local url="https://github.com/beehive-lab/TornadoVM/releases/download/v${tornadovm_version}/${filename}"
 
+  # Check if already downloaded
+  if [[ -d "$sdk_path" && -f "$sdk_path/etc/tornado.backend" ]]; then
+    export TORNADOVM_HOME="$sdk_path"
+    log "Using cached TornadoVM SDK: $TORNADOVM_HOME"
+    return 0
+  fi
+
   log "Downloading from: $url"
   mkdir -p "$sdk_dir"
 
@@ -316,6 +323,33 @@ download_tornadovm() {
     warn "Failed to download TornadoVM SDK"
     return 1
   fi
+}
+
+# Helper to find TornadoVM SDK path
+find_tornadovm_home() {
+  local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
+  local tornadovm_version="${TORNADOVM_VERSION:-2.2.0}"
+  local tornadovm_backend="${TORNADOVM_BACKEND:-opencl}"
+
+  # First try exact version path
+  local sdk_path="$sdk_dir/tornadovm-${tornadovm_version}-${tornadovm_backend}"
+  if [[ -d "$sdk_path" && -f "$sdk_path/etc/tornado.backend" ]]; then
+    echo "$sdk_path"
+    return 0
+  fi
+
+  # Fallback: find any tornadovm directory with etc/tornado.backend
+  if [[ -d "$sdk_dir" ]]; then
+    local found
+    for dir in "$sdk_dir"/tornadovm-*; do
+      if [[ -d "$dir" && -f "$dir/etc/tornado.backend" ]]; then
+        echo "$dir"
+        return 0
+      fi
+    done
+  fi
+
+  return 1
 }
 
 download_models() {
@@ -505,14 +539,10 @@ run_benchmarks() {
 
     # After run-tornado.sh runs, try to detect TORNADOVM_HOME again if not set
     if [[ -z "${TORNADOVM_HOME:-}" ]]; then
-      local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
-      if [[ -d "$sdk_dir" ]]; then
-        local found_sdk
-        found_sdk=$(find "$sdk_dir" -maxdepth 1 -type d -name "tornadovm-*" | head -1)
-        if [[ -n "$found_sdk" && -d "$found_sdk" ]]; then
-          export TORNADOVM_HOME="$found_sdk"
-          log "Auto-detected TORNADOVM_HOME after SDK download: $TORNADOVM_HOME"
-        fi
+      local found_sdk
+      if found_sdk=$(find_tornadovm_home); then
+        export TORNADOVM_HOME="$found_sdk"
+        log "Auto-detected TORNADOVM_HOME after SDK download: $TORNADOVM_HOME"
       fi
     fi
 
