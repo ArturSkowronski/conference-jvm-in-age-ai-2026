@@ -250,7 +250,7 @@ check_tornadovm() {
   # TornadoVM is auto-downloaded by run-tornado.sh when needed
   # Just check if the scripts exist
   if [[ -f "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh" ]]; then
-    success "TornadoVM scripts available (SDK will be downloaded on first run)"
+    success "TornadoVM scripts available"
     export TORNADOVM_AVAILABLE=true
 
     # Try to find and set TORNADOVM_HOME if not already set
@@ -265,12 +265,56 @@ check_tornadovm() {
           log "Auto-detected TORNADOVM_HOME: $TORNADOVM_HOME"
         fi
       fi
+
+      # If still not found, download it
+      if [[ -z "${TORNADOVM_HOME:-}" ]]; then
+        download_tornadovm
+      fi
     else
       log "Using existing TORNADOVM_HOME: $TORNADOVM_HOME"
     fi
   else
     warn "TornadoVM scripts not found"
     export TORNADOVM_AVAILABLE=false
+  fi
+}
+
+download_tornadovm() {
+  log "Downloading TornadoVM SDK..."
+
+  local tornadovm_version="${TORNADOVM_VERSION:-2.2.0}"
+  local tornadovm_backend="${TORNADOVM_BACKEND:-opencl}"
+
+  # Detect platform
+  local os arch platform
+  case "$(uname -s)" in
+    Linux*)  os="linux" ;;
+    Darwin*) os="mac" ;;
+    *)       warn "Unsupported OS for TornadoVM: $(uname -s)"; return 1 ;;
+  esac
+  case "$(uname -m)" in
+    x86_64|amd64) arch="amd64" ;;
+    arm64|aarch64) arch="aarch64" ;;
+    *)            warn "Unsupported architecture for TornadoVM: $(uname -m)"; return 1 ;;
+  esac
+  platform="${os}-${arch}"
+
+  local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
+  local sdk_path="$sdk_dir/tornadovm-${tornadovm_version}-${tornadovm_backend}"
+  local filename="tornadovm-${tornadovm_version}-${tornadovm_backend}-${platform}.tar.gz"
+  local url="https://github.com/beehive-lab/TornadoVM/releases/download/v${tornadovm_version}/${filename}"
+
+  log "Downloading from: $url"
+  mkdir -p "$sdk_dir"
+
+  if curl -fL "$url" -o "$sdk_dir/$filename"; then
+    tar -xzf "$sdk_dir/$filename" -C "$sdk_dir"
+    rm -f "$sdk_dir/$filename"
+    export TORNADOVM_HOME="$sdk_path"
+    success "TornadoVM SDK installed: $TORNADOVM_HOME"
+  else
+    warn "Failed to download TornadoVM SDK"
+    return 1
   fi
 }
 
