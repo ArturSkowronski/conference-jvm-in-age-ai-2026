@@ -19,25 +19,38 @@ public final class JCudaInfoDemo {
   }
 
   public static void run() {
-    System.out.println("== JCuda device info ==");
-    System.out.println("os.name=" + System.getProperty("os.name"));
-    System.out.println("os.arch=" + System.getProperty("os.arch"));
-    System.out.println("java.version=" + System.getProperty("java.version"));
+    System.out.println("[JCuda] ============================================================");
+    System.out.println("[JCuda] JCuda Device Info Demo");
+    System.out.println("[JCuda] ============================================================");
+    System.out.println("[JCuda] os.name=" + System.getProperty("os.name"));
+    System.out.println("[JCuda] os.arch=" + System.getProperty("os.arch"));
+    System.out.println("[JCuda] java.version=" + System.getProperty("java.version"));
+    System.out.println("[JCuda] java.vm.name=" + System.getProperty("java.vm.name"));
+    System.out.println("[JCuda] ============================================================");
+    System.out.println();
 
     try {
+      System.out.println("[JCuda] Enabling JCuda exceptions...");
       JCudaDriver.setExceptionsEnabled(true);
-      cuInit(0);
 
+      System.out.println("[JCuda] Initializing CUDA driver (cuInit)...");
+      long startTime = System.currentTimeMillis();
+      cuInit(0);
+      System.out.println("[JCuda] CUDA driver initialized in " + (System.currentTimeMillis() - startTime) + "ms");
+
+      System.out.println("[JCuda] Getting driver version...");
       int[] driverVersion = {0};
       cuDriverGetVersion(driverVersion);
-      System.out.println("cuda.driverVersion=" + driverVersion[0]);
+      System.out.println("[JCuda] cuda.driverVersion=" + driverVersion[0]);
 
+      System.out.println("[JCuda] Counting CUDA devices...");
       int[] deviceCountArr = {0};
       cuDeviceGetCount(deviceCountArr);
       int deviceCount = deviceCountArr[0];
-      System.out.println("cuda.deviceCount=" + deviceCount);
+      System.out.println("[JCuda] cuda.deviceCount=" + deviceCount);
 
       for (int i = 0; i < deviceCount; i++) {
+        System.out.println("[JCuda] Querying device " + i + "...");
         CUdevice device = new CUdevice();
         cuDeviceGet(device, i);
 
@@ -49,16 +62,21 @@ public final class JCudaInfoDemo {
         int[] minor = {0};
         cuDeviceComputeCapability(major, minor, device);
 
-        System.out.println("cuda.device[" + i + "].name=" + name);
-        System.out.println("cuda.device[" + i + "].cc=" + major[0] + "." + minor[0]);
+        System.out.println("[JCuda] cuda.device[" + i + "].name=" + name);
+        System.out.println("[JCuda] cuda.device[" + i + "].computeCapability=" + major[0] + "." + minor[0]);
       }
+
+      System.out.println();
+      System.out.println("[JCuda] Demo completed successfully!");
+
     } catch (Throwable t) {
       Throwable root = rootCause(t);
-      System.err.println("JCuda unavailable: " + root.getClass().getName() + ": " + root.getMessage());
+      System.err.println("[JCuda] ERROR: " + root.getClass().getName() + ": " + root.getMessage());
       System.err.println();
-      System.err.println("Requirements:");
-      System.err.println("- NVIDIA CUDA driver installed and accessible (nvidia-smi should work on Linux/Windows)");
-      System.err.println("- Matching native JCuda binaries on the classpath for your OS/arch");
+      System.err.println("[JCuda] Requirements:");
+      System.err.println("[JCuda] - NVIDIA CUDA driver installed (nvidia-smi should work)");
+      System.err.println("[JCuda] - Matching native JCuda binaries for your OS/arch");
+      throw new RuntimeException("JCuda initialization failed", t);
     }
   }
 

@@ -29,50 +29,57 @@ public final class JavaLlamaCppDemo {
   }
 
   private static void printHeader() {
-    System.out.println("============================================================");
-    System.out.println("java-llama.cpp Inference Demo");
-    System.out.println("============================================================");
-    System.out.println("Java: " + System.getProperty("java.version"));
-    System.out.println("VM: " + System.getProperty("java.vm.name"));
-    System.out.println("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
-    System.out.println("============================================================");
+    System.out.println("[java-llama.cpp] ============================================================");
+    System.out.println("[java-llama.cpp] java-llama.cpp Inference Demo");
+    System.out.println("[java-llama.cpp] ============================================================");
+    System.out.println("[java-llama.cpp] Java: " + System.getProperty("java.version"));
+    System.out.println("[java-llama.cpp] VM: " + System.getProperty("java.vm.name"));
+    System.out.println("[java-llama.cpp] OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+    System.out.println("[java-llama.cpp] ============================================================");
     System.out.println();
   }
 
   public static void run(String modelPath, String prompt) {
+    System.out.println("[java-llama.cpp] Checking model file...");
     File modelFile = new File(modelPath);
     if (!modelFile.exists()) {
-      System.err.println("Model file not found: " + modelPath);
-      System.err.println();
-      System.err.println("Download the model with:");
-      System.err.println("  mkdir -p ~/.llama/models");
-      System.err.println("  curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \\");
-      System.err.println("    \"https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf\"");
+      System.err.println("[java-llama.cpp] ERROR: Model file not found: " + modelPath);
+      System.err.println("[java-llama.cpp] Download the model with:");
+      System.err.println("[java-llama.cpp]   mkdir -p ~/.llama/models");
+      System.err.println("[java-llama.cpp]   curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \\");
+      System.err.println("[java-llama.cpp]     \"https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf\"");
       System.exit(1);
     }
+    System.out.println("[java-llama.cpp] Model file exists: " + modelPath);
+    System.out.println("[java-llama.cpp] Model size: " + (modelFile.length() / 1024 / 1024) + " MB");
 
-    System.out.println("Loading model: " + modelPath);
+    System.out.println("[java-llama.cpp] Loading model...");
     long loadStart = System.currentTimeMillis();
 
     // Configure model parameters
+    System.out.println("[java-llama.cpp] Configuring model parameters...");
     ModelParameters modelParams = new ModelParameters()
         .setModel(modelPath);
 
     try (LlamaModel model = new LlamaModel(modelParams)) {
       long loadTime = System.currentTimeMillis() - loadStart;
-      System.out.printf("Model loaded in %.2fs%n%n", loadTime / 1000.0);
+      System.out.printf("[java-llama.cpp] Model loaded in %.2fs%n", loadTime / 1000.0);
+      System.out.println();
 
       // Format prompt using Llama 3.2 Instruct chat template
+      System.out.println("[java-llama.cpp] Formatting prompt with Llama 3.2 chat template...");
       String formattedPrompt = formatLlama3Prompt(prompt);
 
-      System.out.println("Prompt: " + prompt);
-      System.out.println("----------------------------------------");
-      System.out.println("Response:");
+      System.out.println("[java-llama.cpp] Prompt: " + prompt);
+      System.out.println("[java-llama.cpp] ----------------------------------------");
+      System.out.println("[java-llama.cpp] Response:");
 
       // Configure inference parameters
+      System.out.println("[java-llama.cpp] Configuring inference parameters (temp=0.7)...");
       InferenceParameters inferParams = new InferenceParameters(formattedPrompt)
           .setTemperature(0.7f);
 
+      System.out.println("[java-llama.cpp] Starting inference...");
       long inferStart = System.currentTimeMillis();
       int tokenCount = 0;
       StringBuilder response = new StringBuilder();
@@ -81,6 +88,7 @@ public final class JavaLlamaCppDemo {
       for (LlamaOutput output : model.generate(inferParams)) {
         String text = output.toString();
         System.out.print(text);
+        System.out.flush();
         response.append(text);
         tokenCount++;
       }
@@ -89,16 +97,18 @@ public final class JavaLlamaCppDemo {
       double tokensPerSec = tokenCount / (inferTime / 1000.0);
 
       System.out.println();
-      System.out.println("----------------------------------------");
+      System.out.println("[java-llama.cpp] ----------------------------------------");
       System.out.println();
-      System.out.println("Stats:");
-      System.out.printf("  Model load time: %.2fs%n", loadTime / 1000.0);
-      System.out.printf("  Inference time: %.2fs%n", inferTime / 1000.0);
-      System.out.printf("  Tokens generated: %d%n", tokenCount);
-      System.out.printf("  Tokens/sec: %.2f%n", tokensPerSec);
+      System.out.println("[java-llama.cpp] Stats:");
+      System.out.printf("[java-llama.cpp]   Model load time: %.2fs%n", loadTime / 1000.0);
+      System.out.printf("[java-llama.cpp]   Inference time: %.2fs%n", inferTime / 1000.0);
+      System.out.printf("[java-llama.cpp]   Tokens generated: %d%n", tokenCount);
+      System.out.printf("[java-llama.cpp]   Tokens/sec: %.2f%n", tokensPerSec);
+      System.out.println();
+      System.out.println("[java-llama.cpp] Demo completed successfully!");
 
     } catch (Exception e) {
-      System.err.println("Error during inference: " + e.getMessage());
+      System.err.println("[java-llama.cpp] ERROR during inference: " + e.getMessage());
       e.printStackTrace();
       System.exit(1);
     }
