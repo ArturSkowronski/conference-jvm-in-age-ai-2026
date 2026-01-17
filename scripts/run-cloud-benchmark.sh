@@ -537,44 +537,26 @@ run_benchmarks() {
     set_result "llama-cpp-python" "SKIPPED (not installed)"
   fi
 
-  # 7. TornadoVM Baseline (CPU)
-  if [[ "${TORNADOVM_AVAILABLE:-false}" == "true" ]]; then
-    run_demo "TornadoVM Baseline (CPU)" \
-      "$PROJECT_DIR/tornadovm-demo/scripts/run-baseline.sh --size 10000000 --iters 3" \
-      false 600
-  else
-    set_result "TornadoVM Baseline (CPU)" "SKIPPED (no TornadoVM)"
-  fi
+  # 7. TornadoVM Baseline (CPU) - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
+  # run_demo "TornadoVM Baseline (CPU)" \
+  #   "$PROJECT_DIR/tornadovm-demo/scripts/run-baseline.sh --size 10000000 --iters 3" \
+  #   false 600
+  warn "Skipping TornadoVM Baseline (disabled - requires GCC 13+)"
+  set_result "TornadoVM Baseline (CPU)" "SKIPPED (disabled)"
 
-  # 8. TornadoVM VectorAdd (GPU) - run-tornado.sh auto-downloads SDK
-  if [[ "${TORNADOVM_AVAILABLE:-false}" == "true" ]]; then
-    run_demo "TornadoVM VectorAdd (GPU)" \
-      "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 3" \
-      true 600
+  # 8. TornadoVM VectorAdd (GPU) - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
+  # run_demo "TornadoVM VectorAdd (GPU)" \
+  #   "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 3" \
+  #   true 600
+  warn "Skipping TornadoVM VectorAdd (disabled - requires GCC 13+)"
+  set_result "TornadoVM VectorAdd (GPU)" "SKIPPED (disabled)"
 
-    # After run-tornado.sh runs, try to detect TORNADOVM_HOME again if not set
-    if [[ -z "${TORNADOVM_HOME:-}" ]]; then
-      local found_sdk
-      if found_sdk=$(find_tornadovm_home); then
-        export TORNADOVM_HOME="$found_sdk"
-        log "Auto-detected TORNADOVM_HOME after SDK download: $TORNADOVM_HOME"
-      fi
-    fi
-
-    # 9. TornadoVM GPULlama3 - requires TORNADOVM_HOME to be set
-    if [[ -n "${TORNADOVM_HOME:-}" ]]; then
-      run_demo "TornadoVM GPULlama3" \
-        "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
-        true 600
-    else
-      warn "Skipping TornadoVM GPULlama3 (TORNADOVM_HOME not set)"
-      set_result "TornadoVM GPULlama3" "SKIPPED (no TORNADOVM_HOME)"
-    fi
-  else
-    warn "Skipping TornadoVM demos (scripts not available)"
-    set_result "TornadoVM VectorAdd (GPU)" "SKIPPED (no TornadoVM)"
-    set_result "TornadoVM GPULlama3" "SKIPPED (no TornadoVM)"
-  fi
+  # 9. TornadoVM GPULlama3 - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
+  # run_demo "TornadoVM GPULlama3" \
+  #   "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
+  #   true 600
+  warn "Skipping TornadoVM GPULlama3 (disabled - requires GCC 13+)"
+  set_result "TornadoVM GPULlama3" "SKIPPED (disabled)"
 }
 
 # ============================================================
