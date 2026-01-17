@@ -421,7 +421,7 @@ run_benchmarks() {
 
     # 9. TornadoVM GPULlama3
     run_demo "TornadoVM GPULlama3" \
-      "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
+      "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
       true 600
   else
     warn "Skipping TornadoVM demos (scripts not available)"

@@ -19,7 +19,7 @@ Notes:
 Examples:
   # Using auto-downloaded SDK (run-tornado.sh downloads it to build/tornadovm-sdk/):
   export TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl
-  ./scripts/run-gpullama3.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "say hello" --heap-max 6g
+  ./scripts/run-gpullama3.sh --model ./models/Llama-3.2-1B-Instruct-f16.gguf --prompt "say hello" --heap-max 6g
 EOF
 }
 

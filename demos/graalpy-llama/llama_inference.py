@@ -98,12 +98,22 @@ def run_inference(model_path: str, prompt: str, max_tokens: int = 256, temperatu
         print(f"  Tokens/sec: {tokens_per_sec:.2f}")
 
 
+def get_project_root() -> Path:
+    """Find the project root directory (contains settings.gradle.kts)."""
+    current = Path(__file__).resolve().parent
+    while current != current.parent:
+        if (current / "settings.gradle.kts").exists():
+            return current
+        current = current.parent
+    return Path.cwd()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="GraalPy Llama inference demo")
     parser.add_argument(
         "--model",
         type=str,
-        default=str(Path.home() / ".llama/models/Llama-3.2-1B-Instruct-f16.gguf"),
+        default=str(get_project_root() / "models/Llama-3.2-1B-Instruct-f16.gguf"),
         help="Path to the GGUF model file",
     )
     parser.add_argument(
@@ -132,9 +142,7 @@ def main() -> None:
     if not Path(args.model).exists():
         print(f"\nError: Model file not found: {args.model}")
         print("\nTo download the model:")
-        print("  mkdir -p ~/.llama/models")
-        print('  curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \\')
-        print('    "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"')
+        print("  ./scripts/download-models.sh --fp16")
         sys.exit(1)
 
     run_inference(args.model, args.prompt, args.max_tokens, args.temperature)

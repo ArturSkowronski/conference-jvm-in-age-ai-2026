@@ -8,10 +8,11 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+ROOT_DIR="$(dirname "$(dirname "$PROJECT_DIR")")"
 LLAMA3_JAVA="$PROJECT_DIR/Llama3.java"
 
 # Default values
-MODEL_PATH="${HOME}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf"
+MODEL_PATH="$ROOT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf"
 PROMPT="Tell me a short joke about programming."
 MAX_TOKENS=256
 MODE="--instruct"
@@ -43,7 +44,7 @@ while [[ $# -gt 0 ]]; do
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  --model PATH      Path to GGUF model (default: ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf)"
+      echo "  --model PATH      Path to GGUF model (default: <project>/models/Llama-3.2-1B-Instruct-f16.gguf)"
       echo "  --prompt TEXT     Prompt for the model"
       echo "  --max-tokens N    Maximum tokens to generate (default: 256)"
       echo "  --chat            Run in chat mode"
@@ -85,12 +86,8 @@ fi
 if [[ ! -f "$MODEL_PATH" ]]; then
   echo "Model not found: $MODEL_PATH"
   echo ""
-  echo "For Llama3.java, Q4_0 quantized models are recommended."
-  echo "Download a Q4_0 model:"
-  echo ""
-  echo "  mkdir -p ~/.llama/models"
-  echo "  curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \\"
-  echo "    'https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_0-GGUF/resolve/main/llama-3.2-1b-instruct-q4_0.gguf'"
+  echo "Download models with:"
+  echo "  ./scripts/download-models.sh --all"
   exit 1
 fi
 

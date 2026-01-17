@@ -10,7 +10,10 @@
 
 set -e
 
-MODEL_DIR="${LLAMA_MODEL_DIR:-$HOME/.llama/models}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+MODEL_DIR="${LLAMA_MODEL_DIR:-$PROJECT_DIR/models}"
 
 # Model URLs
 FP16_URL="https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
@@ -52,7 +55,7 @@ Options:
   --help      Show this help message
 
 Environment:
-  LLAMA_MODEL_DIR   Override model directory (default: ~/.llama/models)
+  LLAMA_MODEL_DIR   Override model directory (default: <project>/models)
 
 Models:
   FP16  - Full precision, best quality (~$FP16_SIZE)

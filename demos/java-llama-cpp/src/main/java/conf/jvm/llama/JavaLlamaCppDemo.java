@@ -21,7 +21,7 @@ public final class JavaLlamaCppDemo {
 
   public static void main(String[] args) {
     String modelPath = args.length > 0 ? args[0] :
-        System.getProperty("user.home") + "/.llama/models/Llama-3.2-1B-Instruct-f16.gguf";
+        System.getProperty("user.dir") + "/models/Llama-3.2-1B-Instruct-f16.gguf";
     String prompt = args.length > 1 ? args[1] : "Tell me a short joke about programming.";
 
     printHeader();
@@ -45,9 +45,7 @@ public final class JavaLlamaCppDemo {
     if (!modelFile.exists()) {
       System.err.println("[java-llama.cpp] ERROR: Model file not found: " + modelPath);
       System.err.println("[java-llama.cpp] Download the model with:");
-      System.err.println("[java-llama.cpp]   mkdir -p ~/.llama/models");
-      System.err.println("[java-llama.cpp]   curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \\");
-      System.err.println("[java-llama.cpp]     \"https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf\"");
+      System.err.println("[java-llama.cpp]   ./scripts/download-models.sh --fp16");
       System.exit(1);
     }
     System.out.println("[java-llama.cpp] Model file exists: " + modelPath);
