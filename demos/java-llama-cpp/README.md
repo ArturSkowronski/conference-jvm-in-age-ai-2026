@@ -19,8 +19,8 @@ This demo runs Llama model inference using [java-llama.cpp](https://github.com/k
 Download the same model used by other demos (~2.5 GB):
 
 ```bash
-mkdir -p ~/.tornadovm/models
-curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+mkdir -p ~/.llama/models
+curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 ```
 
@@ -48,7 +48,7 @@ VM: OpenJDK 64-Bit Server VM
 OS: Mac OS X aarch64
 ============================================================
 
-Loading model: /Users/.../.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf
+Loading model: /Users/.../.llama/models/Llama-3.2-1B-Instruct-f16.gguf
 Model loaded in 19.47s
 
 Prompt: Tell me a short joke about programming.

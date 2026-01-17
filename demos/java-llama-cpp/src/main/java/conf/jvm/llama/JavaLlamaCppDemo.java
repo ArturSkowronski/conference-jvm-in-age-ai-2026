@@ -21,7 +21,7 @@ public final class JavaLlamaCppDemo {
 
   public static void main(String[] args) {
     String modelPath = args.length > 0 ? args[0] :
-        System.getProperty("user.home") + "/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf";
+        System.getProperty("user.home") + "/.llama/models/Llama-3.2-1B-Instruct-f16.gguf";
     String prompt = args.length > 1 ? args[1] : "Tell me a short joke about programming.";
 
     printHeader();
@@ -45,8 +45,8 @@ public final class JavaLlamaCppDemo {
       System.err.println("Model file not found: " + modelPath);
       System.err.println();
       System.err.println("Download the model with:");
-      System.err.println("  mkdir -p ~/.tornadovm/models");
-      System.err.println("  curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \\");
+      System.err.println("  mkdir -p ~/.llama/models");
+      System.err.println("  curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \\");
       System.err.println("    \"https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf\"");
       System.exit(1);
     }

@@ -187,14 +187,14 @@ Verify: OK
 
 ```bash
 # Setup: Download FP16 model if not present
-mkdir -p ~/.tornadovm/models
-# curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+mkdir -p ~/.llama/models
+# curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
 #   "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 
 # Run LLM inference on GPU
 export TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl
 ./tornadovm-demo/scripts/run-gpullama3.sh \
-  --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+  --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   --prompt "Tell me a joke about Java programming"
 ```
 
@@ -281,7 +281,7 @@ VM: OpenJDK 64-Bit Server VM
 OS: Mac OS X aarch64
 ============================================================
 
-Loading model: ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf
+Loading model: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
 Model loaded in 19.47s
 
 Prompt: Tell me a short joke about programming.
@@ -321,7 +321,7 @@ Stats:
 
 ```bash
 # Download Q4_0 model (recommended for Llama3.java)
-curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
   "https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_0-GGUF/resolve/main/llama-3.2-1b-instruct-q4_0.gguf"
 
 # Run with script
@@ -330,7 +330,7 @@ curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
 # Or run directly
 java --enable-preview --source 21 --add-modules jdk.incubator.vector \
   demos/llama3-java/Llama3.java --instruct \
-  --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+  --model ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
   --prompt "Tell me a joke"
 ```
 
@@ -341,7 +341,7 @@ java --enable-preview --source 21 --add-modules jdk.incubator.vector \
 Llama3.java - Pure Java LLM Inference
 ============================================================
 Java: java version "21.0.5" 2024-10-15 LTS
-Model: ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf
+Model: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
 Mode: --instruct
 ============================================================
 
@@ -438,4 +438,4 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 - Script auto-downloads TornadoVM SDK 2.2.0 on first run
 - If JVMCI errors occur: `export JVMCI_CONFIG_CHECK=ignore` (auto-set in scripts)
 - GPULlama3 requires **FP16 format** models (Q4_K_M not supported)
-- Model location: `~/.tornadovm/models/`
+- Model location: `~/.llama/models/`

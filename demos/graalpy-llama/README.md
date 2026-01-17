@@ -22,8 +22,8 @@ This demo runs Llama model inference using GraalPy (Python on GraalVM) with the 
 Download the same model used by TornadoVM (~2.5 GB):
 
 ```bash
-mkdir -p ~/.tornadovm/models
-curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+mkdir -p ~/.llama/models
+curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 ```
 
@@ -42,7 +42,7 @@ The script will:
 ### Options
 
 ```
---model PATH       Path to GGUF model (default: ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf)
+--model PATH       Path to GGUF model (default: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf)
 --prompt TEXT      Prompt for the model (default: "Tell me a short joke about programming.")
 --max-tokens N     Maximum tokens to generate (default: 256)
 --temperature F    Temperature for sampling (default: 0.7)

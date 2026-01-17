@@ -52,8 +52,8 @@ Requirements:
 
 Model setup (example using Llama 3.2 1B):
 ```bash
-mkdir -p ~/.tornadovm/models
-curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+mkdir -p ~/.llama/models
+curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 ```
 
@@ -61,7 +61,7 @@ Run:
 ```bash
 export TORNADOVM_HOME=~/path/to/tornadovm
 export JVMCI_CONFIG_CHECK=ignore  # Workaround for JVMCI compatibility
-./scripts/run-gpullama3.sh --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "tell me a joke"
+./scripts/run-gpullama3.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "tell me a joke"
 ```
 
 ## What this demo shows

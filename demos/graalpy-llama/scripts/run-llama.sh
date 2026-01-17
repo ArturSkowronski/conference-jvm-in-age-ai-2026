@@ -11,7 +11,7 @@ Usage:
   ./scripts/run-llama.sh [--model /path/to/model.gguf] [--prompt "your prompt"] [options]
 
 Options:
-  --model PATH       Path to GGUF model (default: ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf)
+  --model PATH       Path to GGUF model (default: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf)
   --prompt TEXT      Prompt for the model (default: "Tell me a short joke about programming.")
   --max-tokens N     Maximum tokens to generate (default: 256)
   --temperature F    Temperature for sampling (default: 0.7)
@@ -23,8 +23,8 @@ Prerequisites:
   - Model file (~2.5 GB, same model used by TornadoVM GPULlama3 demo)
 
 Model download:
-  mkdir -p ~/.tornadovm/models
-  curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+  mkdir -p ~/.llama/models
+  curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
     "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 
 Examples:

@@ -20,8 +20,8 @@ This demo runs Llama model inference using [Llama3.java](https://github.com/muke
 Llama3.java works best with Q4_0 quantized models. Download a compatible model:
 
 ```bash
-mkdir -p ~/.tornadovm/models
-curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+mkdir -p ~/.llama/models
+curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
   "https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_0-GGUF/resolve/main/llama-3.2-1b-instruct-q4_0.gguf"
 ```
 
@@ -35,7 +35,7 @@ Note: The FP16 model used by other demos will also work but Q4_0 is recommended 
 
 # With FP16 model (same as other demos)
 ./scripts/run-llama3.sh \
-  --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \
+  --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   --prompt "Tell me a joke"
 
 # Interactive chat mode
@@ -63,7 +63,7 @@ You can also run Llama3.java directly:
 ```bash
 java --enable-preview --source 21 --add-modules jdk.incubator.vector \
   Llama3.java --instruct \
-  --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+  --model ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
   --prompt "Tell me a joke"
 ```
 
@@ -73,7 +73,7 @@ For instant startup and minimal memory footprint:
 
 ```bash
 # Compile to native image with model preloaded
-PRELOAD_GGUF=~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+PRELOAD_GGUF=~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
   native-image --enable-preview -O3 -march=native \
   --add-modules jdk.incubator.vector \
   -o llama3 Llama3.java

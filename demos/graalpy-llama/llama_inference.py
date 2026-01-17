@@ -103,7 +103,7 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default=str(Path.home() / ".tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf"),
+        default=str(Path.home() / ".llama/models/Llama-3.2-1B-Instruct-f16.gguf"),
         help="Path to the GGUF model file",
     )
     parser.add_argument(
@@ -132,8 +132,8 @@ def main() -> None:
     if not Path(args.model).exists():
         print(f"\nError: Model file not found: {args.model}")
         print("\nTo download the model:")
-        print("  mkdir -p ~/.tornadovm/models")
-        print('  curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf \\')
+        print("  mkdir -p ~/.llama/models")
+        print('  curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \\')
         print('    "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"')
         sys.exit(1)
 

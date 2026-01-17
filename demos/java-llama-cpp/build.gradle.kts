@@ -23,7 +23,7 @@ tasks.register<JavaExec>("runLlama") {
   mainClass.set(application.mainClass)
 
   val userHome = System.getProperty("user.home")
-  val defaultModel = "$userHome/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf"
+  val defaultModel = "$userHome/.llama/models/Llama-3.2-1B-Instruct-f16.gguf"
   val defaultPrompt = "Tell me a short joke about programming."
 
   val modelPath = if (project.hasProperty("model")) {
@@ -45,7 +45,7 @@ tasks.register<JavaExec>("runLlama") {
 tasks.named<JavaExec>("run") {
   val userHome = System.getProperty("user.home")
   args = listOf(
-    "$userHome/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf",
+    "$userHome/.llama/models/Llama-3.2-1B-Instruct-f16.gguf",
     "Tell me a short joke about programming."
   )
 }
