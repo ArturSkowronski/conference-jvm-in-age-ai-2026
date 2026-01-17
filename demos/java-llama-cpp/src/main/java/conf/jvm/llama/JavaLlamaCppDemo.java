@@ -110,6 +110,9 @@ public final class JavaLlamaCppDemo {
       e.printStackTrace();
       System.exit(1);
     }
+
+    // Force exit - JNI native threads from llama.cpp don't terminate cleanly
+    System.exit(0);
   }
 
   /**
