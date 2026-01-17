@@ -365,10 +365,12 @@ run_benchmarks() {
   echo "============================================================"
   echo ""
 
-  # 1. TensorFlow FFM
-  run_demo "TensorFlow FFM" \
-    "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon --console=plain --info" \
-    false 600
+  # 1. TensorFlow FFM - DISABLED (hangs on Gradle dependency resolution)
+  # run_demo "TensorFlow FFM" \
+  #   "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon --console=plain --info" \
+  #   false 600
+  warn "Skipping TensorFlow FFM (disabled - dependency issues)"
+  RESULTS["TensorFlow FFM"]="SKIPPED (disabled)"
 
   # 2. JCuda
   run_demo "JCuda" \

@@ -4,6 +4,57 @@
 
 ---
 
+## ⚠️ Benchmark Caveats (Read This First)
+
+**This is not a fair, scientific benchmark.** It's an exploratory comparison with significant methodology issues:
+
+### What's Wrong With These Numbers
+
+1. **Apples vs Oranges (GPU vs CPU)**
+   - java-llama.cpp uses **Metal GPU** acceleration → ~47 tok/s
+   - Llama3.java uses **CPU only** (Vector API) → ~12 tok/s
+   - Comparing these directly is like comparing a car to a bicycle. Of course the GPU is faster.
+
+2. **Inconsistent GPU Backends**
+   - java-llama.cpp: Metal (Apple-native, highly optimized)
+   - TornadoVM: OpenCL (cross-platform, less optimized on Mac)
+   - These are not equivalent. Metal has home-field advantage on Apple Silicon.
+
+3. **The Python Mystery**
+   - llama-cpp-python *should* also use Metal, yet shows only ~10 tok/s
+   - java-llama.cpp with the same underlying llama.cpp shows ~47 tok/s
+   - Likely cause: default `n_gpu_layers=0` in our Python script (not forcing GPU offload)
+   - **This makes Python look worse than it actually is.**
+
+4. **No Proper Methodology**
+   - Single runs, not averaged over multiple iterations
+   - No JIT warmup consideration for Java
+   - Different response lengths affect tok/s calculations
+   - Model load time conflated with inference time in some cases
+
+5. **Hardware-Specific Results**
+   - All tests on Apple M1 Pro with unified memory
+   - Results would be completely different on x86, NVIDIA GPU, or cloud instances
+   - Metal advantage disappears on non-Apple hardware
+
+### What This Benchmark Actually Shows
+
+Despite the flaws, there are valid takeaways:
+
+- **Llama3.java at ~12 tok/s with zero native dependencies is genuinely impressive**
+- **GraalPy's ctypes limitation is a real blocker** (not a benchmark issue)
+- **The JVM has multiple viable paths to LLM inference** (the main point)
+
+### What A Fair Benchmark Would Require
+
+- Force GPU layers in Python: `Llama(model_path, n_gpu_layers=-1)`
+- Multiple runs with warmup, report mean and std dev
+- Separate model load time from inference time
+- Test on multiple hardware configurations
+- Control for response length (fixed token count)
+
+---
+
 ## The Setup
 
 **Model**: Llama 3.2 1B Instruct (FP16, 2.5 GB)
@@ -11,6 +62,8 @@
 **Task**: Generate a short response to "Tell me a joke about programming"
 
 Why this model? It's small enough to run on consumer hardware, yet large enough to produce coherent output. The 1B parameter size is the sweet spot for benchmarking—big enough to stress the system, small enough to iterate quickly.
+
+**⚠️ Remember**: The numbers below are indicative, not definitive. See caveats above.
 
 ---
 
@@ -160,13 +213,17 @@ For small models like Llama 3.2 1B, this overhead can dominate. The GPU is fast 
 
 ## The Scoreboard
 
-| Approach | Tokens/sec | Model Load | Dependencies | GPU |
-|----------|------------|------------|--------------|-----|
-| java-llama.cpp | **~47** | 19s | Native libs | Metal |
-| Llama3.java | ~12 | **<1s** | **None** | No |
-| llama-cpp-python | ~10 | 2s | Native libs | Metal |
-| TornadoVM GPULlama3 | ~7 | 5s | TornadoVM | OpenCL |
-| GraalPy | ❌ | - | - | Blocked |
+| Approach | Tokens/sec | Model Load | Dependencies | GPU | Fair Comparison? |
+|----------|------------|------------|--------------|-----|------------------|
+| java-llama.cpp | **~47** | 19s | Native libs | Metal | ⚠️ GPU-accelerated |
+| Llama3.java | ~12 | **<1s** | **None** | No | ✅ CPU baseline |
+| llama-cpp-python | ~10* | 2s | Native libs | Metal? | ⚠️ GPU not forced |
+| TornadoVM GPULlama3 | ~7 | 5s | TornadoVM | OpenCL | ⚠️ Different GPU API |
+| GraalPy | ❌ | - | - | Blocked | N/A |
+
+*\* Python result likely unfair—GPU layers not explicitly enabled. With `n_gpu_layers=-1`, expect ~40+ tok/s.*
+
+**The only fair comparison**: Llama3.java (~12 tok/s) represents true CPU-only performance. Everything else involves GPU acceleration with different backends.
 
 ---
 
