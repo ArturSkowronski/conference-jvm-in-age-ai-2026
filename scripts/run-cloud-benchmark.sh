@@ -339,10 +339,10 @@ run_demo() {
   if [[ $exit_code -eq 0 ]]; then
     success "$name completed in ${duration}s"
 
-    # Extract tokens/sec if present
-    local toks=$(grep -oE "[0-9]+\.?[0-9]* (tokens?/s|tok/s)" "$output_file" | tail -1 || echo "")
+    # Extract tokens/sec if present (handles "Tokens/sec: X" and "X tokens/s" formats)
+    local toks=$(grep -oE "([0-9]+\.?[0-9]*) (tokens?/s|tok/s)|Tokens/sec: ([0-9]+\.?[0-9]*)" "$output_file" | tail -1 | grep -oE "[0-9]+\.?[0-9]+" || echo "")
     if [[ -n "$toks" ]]; then
-      set_result "$name" "SUCCESS: ${duration}s, $toks"
+      set_result "$name" "SUCCESS: ${duration}s, ${toks} tok/s"
     else
       set_result "$name" "SUCCESS: ${duration}s"
     fi

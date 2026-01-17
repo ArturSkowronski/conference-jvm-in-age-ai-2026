@@ -27,3 +27,6 @@ claude/settings.local.json
 
 # Models (large binary files)
 models/
+
+# Benchmark results
+benchmark-results/
