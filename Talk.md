@@ -307,6 +307,67 @@ Stats:
 
 ---
 
+## Demo 7: Llama3.java (Pure Java LLM Inference)
+
+**Goal**: Show 100% pure Java LLM inference with no native dependencies.
+
+### What it demonstrates
+- Single-file pure Java implementation (~3000 lines)
+- Java Vector API for SIMD acceleration
+- GraalVM JIT optimizations
+- No JNI, no native libraries - runs anywhere Java runs
+
+### Commands
+
+```bash
+# Download Q4_0 model (recommended for Llama3.java)
+curl -L -o ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+  "https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_0-GGUF/resolve/main/llama-3.2-1b-instruct-q4_0.gguf"
+
+# Run with script
+./demos/llama3-java/scripts/run-llama3.sh --prompt "Tell me a joke"
+
+# Or run directly
+java --enable-preview --source 21 --add-modules jdk.incubator.vector \
+  demos/llama3-java/Llama3.java --instruct \
+  --model ~/.tornadovm/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
+  --prompt "Tell me a joke"
+```
+
+### Expected output
+
+```
+============================================================
+Llama3.java - Pure Java LLM Inference
+============================================================
+Java: java version "21.0.5" 2024-10-15 LTS
+Model: ~/.tornadovm/models/Llama-3.2-1B-Instruct-f16.gguf
+Mode: --instruct
+============================================================
+
+Parse model: 673 millis
+Load LlaMa model: 345 millis
+
+A man walked into a library and asked the librarian, "Do you have any
+books on Pavlov's dogs and Schrödinger's cat?" The librarian replied,
+"It rings a bell, but I'm not sure if it's here or not."
+
+context: 69/256 prompt: 2.65 tokens/s (15) generation: 12.20 tokens/s (54)
+```
+
+### Key Features
+- **Zero dependencies** - pure Java, no native code
+- **Vector API** - SIMD acceleration via `jdk.incubator.vector`
+- **GraalVM Native Image** - supports AOT compilation with model preloading
+
+### Key source file
+- `demos/llama3-java/Llama3.java`
+
+### References
+- [Llama3.java GitHub](https://github.com/mukel/llama3.java)
+
+---
+
 ## Performance Comparison: LLM Inference
 
 All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Silicon):
@@ -314,6 +375,7 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 | Approach | Language | Backend | Tokens/sec | Status |
 |----------|----------|---------|------------|--------|
 | java-llama.cpp | Java | llama.cpp (JNI+Metal) | ~47.0 | ✅ Working |
+| Llama3.java | Pure Java | Vector API (CPU) | ~12.2 | ✅ Working |
 | llama-cpp-python (CPython) | Python | llama.cpp (CPU+Metal) | ~10.0 | ✅ Working |
 | TornadoVM GPULlama3 | Java | OpenCL (GPU) | ~6.6 | ✅ Working |
 | llama-cpp-python (GraalPy) | Python | llama.cpp | N/A | ❌ Blocked (ctypes) |
@@ -321,6 +383,7 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 ### Observations
 
 - **java-llama.cpp** achieves highest throughput (~47 tok/s) - JNI bindings to llama.cpp with Metal GPU acceleration
+- **Llama3.java** pure Java implementation - no native dependencies, uses Vector API for SIMD
 - **CPython + llama.cpp** good performance (~10 tok/s) with Metal acceleration on Apple Silicon
 - **TornadoVM GPULlama3** runs pure Java on OpenCL (~6.6 tok/s), demonstrating JVM-native GPU inference without native bindings
 - **GraalPy** blocked by ctypes limitation - waiting for Truffle NFI struct return support
@@ -329,6 +392,7 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 
 | Approach | Model Load | First Token Latency |
 |----------|------------|---------------------|
+| Llama3.java | ~1s | ~6s |
 | java-llama.cpp | ~19s | <1s |
 | TornadoVM GPULlama3 | ~5s | ~3s |
 | llama-cpp-python (CPython) | ~23s | ~5s |
@@ -345,6 +409,7 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 | TornadoVM | TornadoVM SDK | GPU acceleration with @Parallel | OpenCL/CUDA |
 | GraalPy Llama | GraalPy + llama-cpp | Python ML on GraalVM | Blocked (ctypes) |
 | java-llama.cpp | JNI bindings | LLM inference via llama.cpp | Linux, macOS, Windows |
+| Llama3.java | Pure Java | 100% Java LLM, Vector API | All (no native deps) |
 
 ---
 
