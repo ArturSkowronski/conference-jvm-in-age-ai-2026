@@ -252,6 +252,22 @@ check_tornadovm() {
   if [[ -f "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh" ]]; then
     success "TornadoVM scripts available (SDK will be downloaded on first run)"
     export TORNADOVM_AVAILABLE=true
+
+    # Try to find and set TORNADOVM_HOME if not already set
+    if [[ -z "${TORNADOVM_HOME:-}" ]]; then
+      local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
+      # Look for any TornadoVM SDK version
+      if [[ -d "$sdk_dir" ]]; then
+        local found_sdk
+        found_sdk=$(find "$sdk_dir" -maxdepth 1 -type d -name "tornadovm-*" | head -1)
+        if [[ -n "$found_sdk" && -d "$found_sdk" ]]; then
+          export TORNADOVM_HOME="$found_sdk"
+          log "Auto-detected TORNADOVM_HOME: $TORNADOVM_HOME"
+        fi
+      fi
+    else
+      log "Using existing TORNADOVM_HOME: $TORNADOVM_HOME"
+    fi
   else
     warn "TornadoVM scripts not found"
     export TORNADOVM_AVAILABLE=false
@@ -437,16 +453,34 @@ run_benchmarks() {
     set_result "TornadoVM Baseline (CPU)" "SKIPPED (no TornadoVM)"
   fi
 
-  # 8. TornadoVM VectorAdd (GPU)
+  # 8. TornadoVM VectorAdd (GPU) - run-tornado.sh auto-downloads SDK
   if [[ "${TORNADOVM_AVAILABLE:-false}" == "true" ]]; then
     run_demo "TornadoVM VectorAdd (GPU)" \
       "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 3" \
       true 600
 
-    # 9. TornadoVM GPULlama3
-    run_demo "TornadoVM GPULlama3" \
-      "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
-      true 600
+    # After run-tornado.sh runs, try to detect TORNADOVM_HOME again if not set
+    if [[ -z "${TORNADOVM_HOME:-}" ]]; then
+      local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
+      if [[ -d "$sdk_dir" ]]; then
+        local found_sdk
+        found_sdk=$(find "$sdk_dir" -maxdepth 1 -type d -name "tornadovm-*" | head -1)
+        if [[ -n "$found_sdk" && -d "$found_sdk" ]]; then
+          export TORNADOVM_HOME="$found_sdk"
+          log "Auto-detected TORNADOVM_HOME after SDK download: $TORNADOVM_HOME"
+        fi
+      fi
+    fi
+
+    # 9. TornadoVM GPULlama3 - requires TORNADOVM_HOME to be set
+    if [[ -n "${TORNADOVM_HOME:-}" ]]; then
+      run_demo "TornadoVM GPULlama3" \
+        "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
+        true 600
+    else
+      warn "Skipping TornadoVM GPULlama3 (TORNADOVM_HOME not set)"
+      set_result "TornadoVM GPULlama3" "SKIPPED (no TORNADOVM_HOME)"
+    fi
   else
     warn "Skipping TornadoVM demos (scripts not available)"
     set_result "TornadoVM VectorAdd (GPU)" "SKIPPED (no TornadoVM)"
