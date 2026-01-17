@@ -17,15 +17,19 @@ This demo runs Llama model inference using [Llama3.java](https://github.com/muke
 
 ## Model Setup
 
-Llama3.java works best with Q4_0 quantized models. Download a compatible model:
+Download the FP16 model (same as other demos for fair comparison):
 
 ```bash
+# Using the download script
+./scripts/download-models.sh --fp16
+
+# Or manually
 mkdir -p ~/.llama/models
-curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
-  "https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q4_0-GGUF/resolve/main/llama-3.2-1b-instruct-q4_0.gguf"
+curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+  "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 ```
 
-Note: The FP16 model used by other demos will also work but Q4_0 is recommended for Llama3.java.
+Note: Q4_0 quantized models also work and load faster, but FP16 is used for benchmark comparisons.
 
 ## Running
 

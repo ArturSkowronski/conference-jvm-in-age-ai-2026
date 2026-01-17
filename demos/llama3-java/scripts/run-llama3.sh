@@ -11,7 +11,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 LLAMA3_JAVA="$PROJECT_DIR/Llama3.java"
 
 # Default values
-MODEL_PATH="${HOME}/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf"
+MODEL_PATH="${HOME}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf"
 PROMPT="Tell me a short joke about programming."
 MAX_TOKENS=256
 MODE="--instruct"
