@@ -511,15 +511,30 @@ run_benchmarks() {
     false 600
 
   # 6. llama-cpp-python (CPython)
+  # Try venv first, then system Python, or install on-demand
+  local python_cmd=""
   if [[ -f "$PROJECT_DIR/.venv/bin/activate" ]]; then
     source "$PROJECT_DIR/.venv/bin/activate"
+    python_cmd="python3"
+  elif python3 -c "import llama_cpp" 2>/dev/null; then
+    # System Python has llama-cpp-python
+    python_cmd="python3"
+  else
+    # Try to install llama-cpp-python
+    log "Installing llama-cpp-python..."
+    if pip3 install llama-cpp-python --quiet 2>/dev/null; then
+      python_cmd="python3"
+    fi
+  fi
+
+  if [[ -n "$python_cmd" ]]; then
     run_demo "llama-cpp-python" \
-      "python3 $PROJECT_DIR/demos/graalpy-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
+      "$python_cmd $PROJECT_DIR/demos/graalpy-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
       false 600
     deactivate 2>/dev/null || true
   else
-    warn "Skipping llama-cpp-python (venv not set up)"
-    set_result "llama-cpp-python" "SKIPPED (no venv)"
+    warn "Skipping llama-cpp-python (not installed)"
+    set_result "llama-cpp-python" "SKIPPED (not installed)"
   fi
 
   # 7. TornadoVM Baseline (CPU)
