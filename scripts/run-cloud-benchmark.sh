@@ -24,6 +24,9 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -295,20 +298,26 @@ run_demo() {
     return 0
   fi
 
-  log "Running: $name"
+  echo ""
+  echo -e "${CYAN}┌──────────────────────────────────────────────────────────────┐${NC}"
+  echo -e "${CYAN}│${NC} Running: ${YELLOW}$name${NC}"
+  echo -e "${CYAN}│${NC} Command: $command"
+  echo -e "${CYAN}│${NC} Timeout: ${timeout}s"
+  echo -e "${CYAN}└──────────────────────────────────────────────────────────────┘${NC}"
 
   local start_time=$(date +%s.%N)
   local output_file="$OUTPUT_DIR/${name// /_}_${TIMESTAMP}.log"
 
-  # Run command with timeout
+  # Run command with timeout - use tee to show output AND save to file
   set +e
-  timeout "$timeout" bash -c "$command" > "$output_file" 2>&1
-  local exit_code=$?
+  timeout "$timeout" bash -c "$command" 2>&1 | tee "$output_file"
+  local exit_code=${PIPESTATUS[0]}
   set -e
 
   local end_time=$(date +%s.%N)
   local duration=$(echo "$end_time - $start_time" | bc)
 
+  echo ""
   if [[ $exit_code -eq 0 ]]; then
     success "$name completed in ${duration}s"
 
@@ -320,14 +329,17 @@ run_demo() {
       RESULTS["$name"]="SUCCESS: ${duration}s"
     fi
   elif [[ $exit_code -eq 124 ]]; then
-    error "$name timed out after ${timeout}s"
+    error "$name TIMED OUT after ${timeout}s"
     RESULTS["$name"]="TIMEOUT"
+    echo -e "${RED}Last 20 lines of output:${NC}"
+    tail -20 "$output_file"
   else
-    error "$name failed with exit code $exit_code"
+    error "$name FAILED with exit code $exit_code"
     RESULTS["$name"]="FAILED (exit $exit_code)"
-    # Show last few lines of error
-    tail -10 "$output_file"
+    echo -e "${RED}Last 20 lines of output:${NC}"
+    tail -20 "$output_file"
   fi
+  echo ""
 }
 
 # ============================================================
@@ -355,35 +367,35 @@ run_benchmarks() {
 
   # 1. TensorFlow FFM
   run_demo "TensorFlow FFM" \
-    "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon -q" \
-    false 120
+    "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon" \
+    false 600
 
   # 2. JCuda
   run_demo "JCuda" \
-    "./gradlew :demos:jcuda:run --no-daemon -q" \
-    true 60
+    "./gradlew :demos:jcuda:run --no-daemon" \
+    true 600
 
   # 3. GraalPy Java Host
   run_demo "GraalPy Java Host" \
-    "./gradlew :demos:graalpy-java-host:run --no-daemon -q" \
-    false 120
+    "./gradlew :demos:graalpy-java-host:run --no-daemon" \
+    false 600
 
   # 4. java-llama.cpp
   run_demo "java-llama.cpp" \
-    "./gradlew :demos:java-llama-cpp:run --no-daemon -q" \
-    false 180
+    "./gradlew :demos:java-llama-cpp:run --no-daemon" \
+    false 600
 
   # 5. Llama3.java
   run_demo "Llama3.java" \
     "./demos/llama3-java/scripts/run-llama3.sh --prompt 'Tell me a short joke about programming'" \
-    false 180
+    false 600
 
   # 6. llama-cpp-python (CPython)
   if [[ -f "$PROJECT_DIR/.venv/bin/activate" ]]; then
     source "$PROJECT_DIR/.venv/bin/activate"
     run_demo "llama-cpp-python" \
       "python3 $PROJECT_DIR/demos/graalpy-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
-      false 180
+      false 600
     deactivate 2>/dev/null || true
   else
     warn "Skipping llama-cpp-python (venv not set up)"
@@ -394,7 +406,7 @@ run_benchmarks() {
   if [[ "${TORNADOVM_AVAILABLE:-false}" == "true" ]]; then
     run_demo "TornadoVM Baseline (CPU)" \
       "$PROJECT_DIR/tornadovm-demo/scripts/run-baseline.sh --size 10000000 --iters 3" \
-      false 120
+      false 600
   else
     RESULTS["TornadoVM Baseline (CPU)"]="SKIPPED (no TornadoVM)"
   fi
@@ -403,12 +415,12 @@ run_benchmarks() {
   if [[ "${TORNADOVM_AVAILABLE:-false}" == "true" ]]; then
     run_demo "TornadoVM VectorAdd (GPU)" \
       "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 3" \
-      true 180
+      true 600
 
     # 9. TornadoVM GPULlama3
     run_demo "TornadoVM GPULlama3" \
       "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
-      true 300
+      true 600
   else
     warn "Skipping TornadoVM demos (scripts not available)"
     RESULTS["TornadoVM VectorAdd (GPU)"]="SKIPPED (no TornadoVM)"
@@ -541,4 +553,17 @@ main() {
   echo ""
 }
 
-main "$@"
+# Create output directory if not exists and set up logging
+mkdir -p "$OUTPUT_DIR"
+RUN_LOG="$OUTPUT_DIR/run_$(date +%Y%m%d_%H%M%S).log"
+
+echo "=== Benchmark run started at $(date) ===" | tee "$RUN_LOG"
+echo "=== Full output will be saved to: $RUN_LOG ===" | tee -a "$RUN_LOG"
+echo "" | tee -a "$RUN_LOG"
+
+# Run main and tee all output to log file
+main "$@" 2>&1 | tee -a "$RUN_LOG"
+
+echo "" | tee -a "$RUN_LOG"
+echo "=== Benchmark run completed at $(date) ===" | tee -a "$RUN_LOG"
+echo "=== Full log saved to: $RUN_LOG ===" | tee -a "$RUN_LOG"

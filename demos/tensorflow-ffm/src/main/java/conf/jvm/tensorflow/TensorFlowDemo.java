@@ -12,10 +12,17 @@ public final class TensorFlowDemo {
   }
 
   public static void run() {
+    System.out.println("[TensorFlow FFM] Starting demo...");
+    System.out.println("[TensorFlow FFM] Loading TensorFlow native library...");
     try (TensorFlowC tf = TensorFlowC.load()) {
-      System.out.println("TensorFlow via FFM (C API)");
-      System.out.println("TF_Version=" + version(tf));
-      System.out.println("1.5 + 2.25 = " + addTwoScalars(tf, 1.5f, 2.25f));
+      System.out.println("[TensorFlow FFM] Library loaded successfully!");
+      System.out.println("[TensorFlow FFM] TensorFlow via FFM (C API)");
+      System.out.println("[TensorFlow FFM] Getting version...");
+      System.out.println("[TensorFlow FFM] TF_Version=" + version(tf));
+      System.out.println("[TensorFlow FFM] Running computation: 1.5 + 2.25...");
+      float result = addTwoScalars(tf, 1.5f, 2.25f);
+      System.out.println("[TensorFlow FFM] Result: 1.5 + 2.25 = " + result);
+      System.out.println("[TensorFlow FFM] Demo completed successfully!");
     }
   }
 

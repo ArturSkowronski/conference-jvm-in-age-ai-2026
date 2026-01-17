@@ -102,18 +102,32 @@ final class TensorFlowC implements AutoCloseable {
   }
 
   static TensorFlowC load() {
+    System.out.println("[TensorFlowC] Resolving TensorFlow home directory...");
     Path home = TensorFlowNative.resolveHome();
-    TensorFlowNative.Libraries libs = TensorFlowNative.resolveLibraries(home);
+    System.out.println("[TensorFlowC] TensorFlow home: " + home);
 
+    System.out.println("[TensorFlowC] Resolving native libraries...");
+    TensorFlowNative.Libraries libs = TensorFlowNative.resolveLibraries(home);
+    System.out.println("[TensorFlowC] Framework lib: " + libs.framework());
+    System.out.println("[TensorFlowC] TensorFlow lib: " + libs.tensorflow());
+
+    System.out.println("[TensorFlowC] Creating memory arena...");
     Arena arena = Arena.ofShared();
     SymbolLookup lookup = SymbolLookup.loaderLookup().or(Linker.nativeLinker().defaultLookup());
 
     if (libs.framework() != null) {
+      System.out.println("[TensorFlowC] Loading framework library...");
       lookup = SymbolLookup.libraryLookup(libs.framework(), arena).or(lookup);
+      System.out.println("[TensorFlowC] Framework library loaded!");
     }
+    System.out.println("[TensorFlowC] Loading TensorFlow library...");
     lookup = SymbolLookup.libraryLookup(libs.tensorflow(), arena).or(lookup);
+    System.out.println("[TensorFlowC] TensorFlow library loaded!");
 
-    return new TensorFlowC(arena, lookup);
+    System.out.println("[TensorFlowC] Binding native functions...");
+    TensorFlowC tf = new TensorFlowC(arena, lookup);
+    System.out.println("[TensorFlowC] All functions bound successfully!");
+    return tf;
   }
 
   MemorySegment allocateUtf8(String value) {
