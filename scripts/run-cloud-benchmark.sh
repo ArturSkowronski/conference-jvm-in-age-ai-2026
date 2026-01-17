@@ -393,10 +393,12 @@ run_benchmarks() {
   warn "Skipping TensorFlow FFM (disabled - dependency issues)"
   set_result "TensorFlow FFM" "SKIPPED (disabled)"
 
-  # 2. JCuda
-  run_demo "JCuda" \
-    "./gradlew :demos:jcuda:run --no-daemon --console=plain --info" \
-    true 600
+  # 2. JCuda - DISABLED (requires NVIDIA GPU with CUDA)
+  # run_demo "JCuda" \
+  #   "./gradlew :demos:jcuda:run --no-daemon --console=plain --info" \
+  #   true 600
+  warn "Skipping JCuda (disabled - requires NVIDIA CUDA)"
+  set_result "JCuda" "SKIPPED (disabled)"
 
   # 3. GraalPy Java Host
   run_demo "GraalPy Java Host" \
