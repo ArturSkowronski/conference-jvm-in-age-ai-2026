@@ -270,7 +270,19 @@ download_models() {
 # Benchmark Functions
 # ============================================================
 
-declare -A RESULTS
+# Results stored in a temp file (Bash 3 compatible, no associative arrays)
+RESULTS_TMP=""
+
+init_results() {
+  RESULTS_TMP="$OUTPUT_DIR/.results_tmp_${TIMESTAMP}"
+  : > "$RESULTS_TMP"
+}
+
+set_result() {
+  local name="$1"
+  local status="$2"
+  echo "${name}|${status}" >> "$RESULTS_TMP"
+}
 
 run_demo() {
   local name="$1"
@@ -281,20 +293,20 @@ run_demo() {
   # Skip based on mode
   if [[ "$CPU_ONLY" == "true" ]] && [[ "$requires_gpu" == "true" ]]; then
     warn "Skipping $name (CPU-only mode)"
-    RESULTS["$name"]="SKIPPED (CPU-only mode)"
+    set_result "$name" "SKIPPED (CPU-only mode)"
     return 0
   fi
 
   if [[ "$GPU_ONLY" == "true" ]] && [[ "$requires_gpu" != "true" ]]; then
     warn "Skipping $name (GPU-only mode)"
-    RESULTS["$name"]="SKIPPED (GPU-only mode)"
+    set_result "$name" "SKIPPED (GPU-only mode)"
     return 0
   fi
 
   # Check GPU requirement
   if [[ "$requires_gpu" == "true" ]] && [[ "$HAS_NVIDIA_GPU" != "true" ]]; then
     warn "Skipping $name (requires NVIDIA GPU)"
-    RESULTS["$name"]="SKIPPED (no GPU)"
+    set_result "$name" "SKIPPED (no GPU)"
     return 0
   fi
 
@@ -305,17 +317,23 @@ run_demo() {
   echo -e "${CYAN}│${NC} Timeout: ${timeout}s"
   echo -e "${CYAN}└──────────────────────────────────────────────────────────────┘${NC}"
 
-  local start_time=$(date +%s.%N)
+  local start_time=$(date +%s)
   local output_file="$OUTPUT_DIR/${name// /_}_${TIMESTAMP}.log"
 
   # Run command with timeout - use tee to show output AND save to file
+  # Use gtimeout on macOS, timeout on Linux
+  local timeout_cmd="timeout"
+  if [[ "$OS_NAME" == "Darwin" ]]; then
+    timeout_cmd="gtimeout"
+  fi
+
   set +e
-  timeout "$timeout" bash -c "$command" 2>&1 | tee "$output_file"
+  $timeout_cmd "$timeout" bash -c "$command" 2>&1 | tee "$output_file"
   local exit_code=${PIPESTATUS[0]}
   set -e
 
-  local end_time=$(date +%s.%N)
-  local duration=$(echo "$end_time - $start_time" | bc)
+  local end_time=$(date +%s)
+  local duration=$((end_time - start_time))
 
   echo ""
   if [[ $exit_code -eq 0 ]]; then
@@ -324,18 +342,18 @@ run_demo() {
     # Extract tokens/sec if present
     local toks=$(grep -oE "[0-9]+\.?[0-9]* (tokens?/s|tok/s)" "$output_file" | tail -1 || echo "")
     if [[ -n "$toks" ]]; then
-      RESULTS["$name"]="SUCCESS: ${duration}s, $toks"
+      set_result "$name" "SUCCESS: ${duration}s, $toks"
     else
-      RESULTS["$name"]="SUCCESS: ${duration}s"
+      set_result "$name" "SUCCESS: ${duration}s"
     fi
   elif [[ $exit_code -eq 124 ]]; then
     error "$name TIMED OUT after ${timeout}s"
-    RESULTS["$name"]="TIMEOUT"
+    set_result "$name" "TIMEOUT"
     echo -e "${RED}Last 20 lines of output:${NC}"
     tail -20 "$output_file"
   else
     error "$name FAILED with exit code $exit_code"
-    RESULTS["$name"]="FAILED (exit $exit_code)"
+    set_result "$name" "FAILED (exit $exit_code)"
     echo -e "${RED}Last 20 lines of output:${NC}"
     tail -20 "$output_file"
   fi
@@ -365,12 +383,15 @@ run_benchmarks() {
   echo "============================================================"
   echo ""
 
+  # Initialize results storage
+  init_results
+
   # 1. TensorFlow FFM - DISABLED (hangs on Gradle dependency resolution)
   # run_demo "TensorFlow FFM" \
   #   "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon --console=plain --info" \
   #   false 600
   warn "Skipping TensorFlow FFM (disabled - dependency issues)"
-  RESULTS["TensorFlow FFM"]="SKIPPED (disabled)"
+  set_result "TensorFlow FFM" "SKIPPED (disabled)"
 
   # 2. JCuda
   run_demo "JCuda" \
@@ -401,7 +422,7 @@ run_benchmarks() {
     deactivate 2>/dev/null || true
   else
     warn "Skipping llama-cpp-python (venv not set up)"
-    RESULTS["llama-cpp-python"]="SKIPPED (no venv)"
+    set_result "llama-cpp-python" "SKIPPED (no venv)"
   fi
 
   # 7. TornadoVM Baseline (CPU)
@@ -410,7 +431,7 @@ run_benchmarks() {
       "$PROJECT_DIR/tornadovm-demo/scripts/run-baseline.sh --size 10000000 --iters 3" \
       false 600
   else
-    RESULTS["TornadoVM Baseline (CPU)"]="SKIPPED (no TornadoVM)"
+    set_result "TornadoVM Baseline (CPU)" "SKIPPED (no TornadoVM)"
   fi
 
   # 8. TornadoVM VectorAdd (GPU)
@@ -425,8 +446,8 @@ run_benchmarks() {
       true 600
   else
     warn "Skipping TornadoVM demos (scripts not available)"
-    RESULTS["TornadoVM VectorAdd (GPU)"]="SKIPPED (no TornadoVM)"
-    RESULTS["TornadoVM GPULlama3"]="SKIPPED (no TornadoVM)"
+    set_result "TornadoVM VectorAdd (GPU)" "SKIPPED (no TornadoVM)"
+    set_result "TornadoVM GPULlama3" "SKIPPED (no TornadoVM)"
   fi
 }
 
@@ -461,9 +482,10 @@ generate_report() {
 |------|--------|
 EOF
 
-  for demo in "${!RESULTS[@]}"; do
-    echo "| $demo | ${RESULTS[$demo]} |" >> "$RESULTS_FILE"
-  done
+  # Read results from temp file
+  while IFS='|' read -r demo status; do
+    echo "| $demo | $status |" >> "$RESULTS_FILE"
+  done < "$RESULTS_TMP"
 
   cat >> "$RESULTS_FILE" << EOF
 
@@ -493,17 +515,20 @@ EOF
   echo "  \"results\": {" >> "$JSON_FILE"
 
   local first=true
-  for demo in "${!RESULTS[@]}"; do
+  while IFS='|' read -r demo status; do
     if [[ "$first" == "true" ]]; then
       first=false
     else
       echo "," >> "$JSON_FILE"
     fi
-    echo -n "    \"$demo\": \"${RESULTS[$demo]}\"" >> "$JSON_FILE"
-  done
+    echo -n "    \"$demo\": \"$status\"" >> "$JSON_FILE"
+  done < "$RESULTS_TMP"
   echo "" >> "$JSON_FILE"
   echo "  }" >> "$JSON_FILE"
   echo "}" >> "$JSON_FILE"
+
+  # Cleanup temp file
+  rm -f "$RESULTS_TMP"
 
   success "Report saved to: $RESULTS_FILE"
   success "JSON saved to: $JSON_FILE"
@@ -535,8 +560,6 @@ main() {
     check_tornadovm
   else
     log "Skipping setup (--skip-setup)"
-    # Still source SDKMAN if available
-    [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh" 2>/dev/null || true
     # Check TornadoVM even when skipping setup
     check_tornadovm
   fi

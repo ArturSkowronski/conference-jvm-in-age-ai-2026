@@ -84,7 +84,10 @@
       "Bash(ssh:*)",
       "Bash(scp:*)",
       "Bash(script -q /dev/null ssh -t -o StrictHostKeyChecking=no gwl0bfophalw22-64411298@ssh.runpod.io -i ~/.ssh/runpods_ed25519 \"pwd && nvidia-smi --query-gpu=name,memory.total --format=csv,noheader && echo DONE\")",
-      "Bash(expect:*)"
+      "Bash(expect:*)",
+      "Bash(./scripts/run-cloud-benchmark.sh:*)",
+      "Bash(/opt/homebrew/bin/bash:*)",
+      "Bash(/usr/local/bin/bash:*)"
     ]
   }
 }

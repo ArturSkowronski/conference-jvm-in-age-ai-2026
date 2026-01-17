@@ -1,0 +1,84 @@
+++ date
++ echo '=== Benchmark run started at Sat Jan 17 23:34:50 CET 2026 ==='
+=== Benchmark run started at Sat Jan 17 23:34:50 CET 2026 ===
++ echo '=== Full output will be saved to: /Users/askowronski/Priv/talks/conference-jvm-in-age-ai-2026/benchmark-results/run_20260117_233450.log ==='
+=== Full output will be saved to: /Users/askowronski/Priv/talks/conference-jvm-in-age-ai-2026/benchmark-results/run_20260117_233450.log ===
++ echo ''
+
++ main
++ echo ''
+
++ echo ============================================================
+============================================================
++ echo 'JVM AI Demos - Cloud Benchmark Runner'
+JVM AI Demos - Cloud Benchmark Runner
++ echo ============================================================
+============================================================
++ echo ''
+
++ detect_environment
++ log 'Detecting environment...'
+++ date +%H:%M:%S
++ echo -e '\033[0;34m[23:34:50]\033[0m Detecting environment...'
+[0;34m[23:34:50][0m Detecting environment...
+++ uname -s
++ OS_NAME=Darwin
+++ uname -m
++ OS_ARCH=arm64
++ HAS_NVIDIA_GPU=false
++ NVIDIA_GPU_NAME=N/A
++ CUDA_VERSION=N/A
++ command -v nvidia-smi
++ HAS_OPENCL=false
++ command -v clinfo
++ [[ Darwin == \L\i\n\u\x ]]
++ [[ Darwin == \D\a\r\w\i\n ]]
+++ sysctl -n hw.memsize
++ TOTAL_RAM=32
++ JAVA_VERSION='Not installed'
++ command -v java
+++ java -version
+++ head -1
+++ cut '-d"' -f2
++ JAVA_VERSION=21.0.2
++ PYTHON_VERSION='Not installed'
++ command -v python3
+++ python3 --version
+++ awk '{print $2}'
++ PYTHON_VERSION=3.13.0
++ echo ''
+
++ echo ============================================================
+============================================================
++ echo 'Environment Detected'
+Environment Detected
++ echo ============================================================
+============================================================
++ echo 'OS:              Darwin arm64'
+OS:              Darwin arm64
++ echo 'RAM:             32 GB'
+RAM:             32 GB
++ echo 'NVIDIA GPU:      false (N/A)'
+NVIDIA GPU:      false (N/A)
++ echo 'CUDA Driver:     N/A'
+CUDA Driver:     N/A
++ echo 'CUDA Toolkit:    N/A'
+CUDA Toolkit:    N/A
++ echo 'OpenCL:          false'
+OpenCL:          false
++ echo 'Java:            21.0.2'
+Java:            21.0.2
++ echo 'Python:          3.13.0'
+Python:          3.13.0
++ echo ============================================================
+============================================================
++ echo ''
+
++ export OS_NAME OS_ARCH HAS_NVIDIA_GPU NVIDIA_GPU_NAME CUDA_VERSION HAS_OPENCL TOTAL_RAM JAVA_VERSION PYTHON_VERSION
++ [[ true != \t\r\u\e ]]
++ log 'Skipping setup (--skip-setup)'
+++ date +%H:%M:%S
++ echo -e '\033[0;34m[23:34:50]\033[0m Skipping setup (--skip-setup)'
+[0;34m[23:34:50][0m Skipping setup (--skip-setup)
++ [[ -f /Users/askowronski/.sdkman/bin/sdkman-init.sh ]]
++ source /Users/askowronski/.sdkman/bin/sdkman-init.sh
