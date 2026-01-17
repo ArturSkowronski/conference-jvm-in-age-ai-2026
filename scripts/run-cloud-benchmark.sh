@@ -328,7 +328,8 @@ run_demo() {
   fi
 
   set +e
-  $timeout_cmd "$timeout" bash -c "$command" 2>&1 | tee "$output_file"
+  # Use </dev/null to prevent Gradle daemon from waiting on stdin
+  $timeout_cmd "$timeout" bash -c "$command" </dev/null 2>&1 | tee "$output_file"
   local exit_code=${PIPESTATUS[0]}
   set -e
 
