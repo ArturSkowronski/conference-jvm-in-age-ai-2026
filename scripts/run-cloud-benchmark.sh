@@ -198,27 +198,98 @@ detect_environment() {
 setup_java() {
   log "Setting up Java..."
 
-  # Check if SDKMAN is installed
-  if [[ ! -d "$HOME/.sdkman" ]]; then
-    log "Installing SDKMAN..."
-    curl -s "https://get.sdkman.io" | bash
-    source "$HOME/.sdkman/bin/sdkman-init.sh"
-  else
-    source "$HOME/.sdkman/bin/sdkman-init.sh" 2>/dev/null || true
+  # Check if Java 21+ is already available
+  if command -v java &> /dev/null; then
+    local java_ver
+    java_ver=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | cut -d'.' -f1)
+    if [[ "$java_ver" -ge 21 ]]; then
+      log "Java $java_ver already available"
+      java -version
+      success "Java setup complete"
+      return 0
+    fi
   fi
 
-  # Install GraalVM CE 21 if not present
-  if ! sdk list java 2>/dev/null | grep -q "21.*-graalce.*installed"; then
-    log "Installing GraalVM CE 21..."
-    sdk install java 21.0.5-graalce < /dev/null || true
+  # Try SDKMAN first
+  local sdkman_success=false
+  if [[ -d "$HOME/.sdkman" ]] || curl -s "https://get.sdkman.io" | bash 2>/dev/null; then
+    if [[ -f "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+      source "$HOME/.sdkman/bin/sdkman-init.sh" 2>/dev/null || true
+      if command -v sdk &> /dev/null; then
+        log "Installing GraalVM CE 21 via SDKMAN..."
+        if sdk install java 21.0.5-graalce < /dev/null 2>/dev/null; then
+          sdk use java 21.0.5-graalce < /dev/null 2>/dev/null || true
+          sdkman_success=true
+        fi
+      fi
+    fi
   fi
 
-  # Use GraalVM
-  sdk use java 21.0.5-graalce < /dev/null 2>/dev/null || true
+  # Fallback: Direct GraalVM download
+  if [[ "$sdkman_success" != "true" ]]; then
+    log "SDKMAN unavailable, downloading GraalVM directly..."
+    download_graalvm
+  fi
 
   # Verify
   java -version
   success "Java setup complete"
+}
+
+download_graalvm() {
+  local graalvm_dir="$PROJECT_DIR/build/graalvm"
+  local graalvm_version="21"
+
+  # Detect platform
+  local os arch filename
+  case "$(uname -s)" in
+    Linux*)  os="linux" ;;
+    Darwin*) os="macos" ;;
+    *)       error "Unsupported OS: $(uname -s)"; return 1 ;;
+  esac
+  case "$(uname -m)" in
+    x86_64|amd64) arch="x64" ;;
+    arm64|aarch64) arch="aarch64" ;;
+    *)            error "Unsupported architecture: $(uname -m)"; return 1 ;;
+  esac
+
+  filename="graalvm-jdk-${graalvm_version}_${os}-${arch}_bin.tar.gz"
+  local url="https://download.oracle.com/graalvm/${graalvm_version}/latest/${filename}"
+
+  # Check if already downloaded
+  if [[ -d "$graalvm_dir" ]]; then
+    local existing
+    existing=$(find "$graalvm_dir" -maxdepth 1 -type d -name "graalvm-jdk-*" | head -1)
+    if [[ -n "$existing" && -x "$existing/bin/java" ]]; then
+      export JAVA_HOME="$existing"
+      export PATH="$JAVA_HOME/bin:$PATH"
+      log "Using cached GraalVM: $JAVA_HOME"
+      return 0
+    fi
+  fi
+
+  log "Downloading GraalVM from: $url"
+  mkdir -p "$graalvm_dir"
+
+  if curl -fL "$url" -o "$graalvm_dir/$filename"; then
+    tar -xzf "$graalvm_dir/$filename" -C "$graalvm_dir"
+    rm -f "$graalvm_dir/$filename"
+
+    # Find extracted directory
+    local extracted
+    extracted=$(find "$graalvm_dir" -maxdepth 1 -type d -name "graalvm-jdk-*" | head -1)
+    if [[ -n "$extracted" && -x "$extracted/bin/java" ]]; then
+      export JAVA_HOME="$extracted"
+      export PATH="$JAVA_HOME/bin:$PATH"
+      success "GraalVM installed: $JAVA_HOME"
+    else
+      error "GraalVM extraction failed"
+      return 1
+    fi
+  else
+    error "Failed to download GraalVM"
+    return 1
+  fi
 }
 
 setup_python() {
