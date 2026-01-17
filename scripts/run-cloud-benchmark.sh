@@ -13,6 +13,7 @@
 #   --skip-download   Skip model download (if already present)
 #   --gpu-only        Only run GPU-requiring demos
 #   --cpu-only        Only run CPU demos (skip JCuda, TornadoVM GPU)
+#   --run-py-baseline Run llama-cpp-python baseline (disabled by default)
 #   --output DIR      Output directory for results (default: ./benchmark-results)
 #   --help            Show this help
 #
@@ -37,6 +38,7 @@ SKIP_SETUP=false
 SKIP_DOWNLOAD=false
 GPU_ONLY=false
 CPU_ONLY=false
+RUN_PY_BASELINE=false
 OUTPUT_DIR="$PROJECT_DIR/benchmark-results"
 
 # Parse arguments
@@ -58,6 +60,10 @@ while [[ $# -gt 0 ]]; do
       CPU_ONLY=true
       shift
       ;;
+    --run-py-baseline)
+      RUN_PY_BASELINE=true
+      shift
+      ;;
     --output)
       OUTPUT_DIR="$2"
       shift 2
@@ -72,6 +78,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --skip-download   Skip model download (if already present)"
       echo "  --gpu-only        Only run GPU-requiring demos"
       echo "  --cpu-only        Only run CPU demos (skip JCuda, TornadoVM GPU)"
+      echo "  --run-py-baseline Run llama-cpp-python baseline (disabled by default)"
       echo "  --output DIR      Output directory for results (default: ./benchmark-results)"
       echo "  --help            Show this help"
       echo ""
@@ -510,31 +517,36 @@ run_benchmarks() {
     "./demos/llama3-java/scripts/run-llama3.sh --prompt 'Tell me a short joke about programming'" \
     false 600
 
-  # 6. llama-cpp-python (CPython)
-  # Try venv first, then system Python, or install on-demand
-  local python_cmd=""
-  if [[ -f "$PROJECT_DIR/.venv/bin/activate" ]]; then
-    source "$PROJECT_DIR/.venv/bin/activate"
-    python_cmd="python3"
-  elif python3 -c "import llama_cpp" 2>/dev/null; then
-    # System Python has llama-cpp-python
-    python_cmd="python3"
-  else
-    # Try to install llama-cpp-python
-    log "Installing llama-cpp-python..."
-    if pip3 install llama-cpp-python --quiet 2>/dev/null; then
+  # 6. llama-cpp-python (CPython) - disabled by default, use --run-py-baseline to enable
+  if [[ "$RUN_PY_BASELINE" == "true" ]]; then
+    # Try venv first, then system Python, or install on-demand
+    local python_cmd=""
+    if [[ -f "$PROJECT_DIR/.venv/bin/activate" ]]; then
+      source "$PROJECT_DIR/.venv/bin/activate"
       python_cmd="python3"
+    elif python3 -c "import llama_cpp" 2>/dev/null; then
+      # System Python has llama-cpp-python
+      python_cmd="python3"
+    else
+      # Try to install llama-cpp-python
+      log "Installing llama-cpp-python..."
+      if pip3 install llama-cpp-python --quiet 2>/dev/null; then
+        python_cmd="python3"
+      fi
     fi
-  fi
 
-  if [[ -n "$python_cmd" ]]; then
-    run_demo "llama-cpp-python" \
-      "$python_cmd $PROJECT_DIR/demos/graalpy-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
-      false 600
-    deactivate 2>/dev/null || true
+    if [[ -n "$python_cmd" ]]; then
+      run_demo "llama-cpp-python" \
+        "$python_cmd $PROJECT_DIR/demos/graalpy-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
+        false 600
+      deactivate 2>/dev/null || true
+    else
+      warn "Skipping llama-cpp-python (not installed)"
+      set_result "llama-cpp-python" "SKIPPED (not installed)"
+    fi
   else
-    warn "Skipping llama-cpp-python (not installed)"
-    set_result "llama-cpp-python" "SKIPPED (not installed)"
+    warn "Skipping llama-cpp-python (use --run-py-baseline to enable)"
+    set_result "llama-cpp-python" "SKIPPED (use --run-py-baseline)"
   fi
 
   # 7. TornadoVM Baseline (CPU) - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
