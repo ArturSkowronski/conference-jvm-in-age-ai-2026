@@ -367,22 +367,22 @@ run_benchmarks() {
 
   # 1. TensorFlow FFM
   run_demo "TensorFlow FFM" \
-    "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon" \
+    "./gradlew :demos:tensorflow-ffm:runTensorFlow --no-daemon --console=plain --info" \
     false 600
 
   # 2. JCuda
   run_demo "JCuda" \
-    "./gradlew :demos:jcuda:run --no-daemon" \
+    "./gradlew :demos:jcuda:run --no-daemon --console=plain --info" \
     true 600
 
   # 3. GraalPy Java Host
   run_demo "GraalPy Java Host" \
-    "./gradlew :demos:graalpy-java-host:run --no-daemon" \
+    "./gradlew :demos:graalpy-java-host:run --no-daemon --console=plain --info" \
     false 600
 
   # 4. java-llama.cpp
   run_demo "java-llama.cpp" \
-    "./gradlew :demos:java-llama-cpp:run --no-daemon" \
+    "./gradlew :demos:java-llama-cpp:run --no-daemon --console=plain --info" \
     false 600
 
   # 5. Llama3.java
