@@ -10,7 +10,28 @@ sdk env install && sdk env
 
 # Verify Java version (should be GraalVM CE 21)
 java -version
+
+# Download Llama models (required for LLM demos)
+./scripts/download-models.sh
 ```
+
+### Model Download Options
+
+```bash
+# Download all models (~3.3 GB total)
+./scripts/download-models.sh --all
+
+# Download only FP16 model (~2.5 GB) - for java-llama.cpp, TornadoVM, graalpy-llama
+./scripts/download-models.sh --fp16
+
+# Download only Q4_0 model (~0.8 GB) - for Llama3.java
+./scripts/download-models.sh --q4
+
+# Check download status
+./scripts/download-models.sh --list
+```
+
+Models are stored in `~/.llama/models/`.
 
 ---
 
