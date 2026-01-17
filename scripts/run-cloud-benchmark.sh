@@ -553,17 +553,19 @@ main() {
   echo ""
 }
 
-# Create output directory if not exists and set up logging
+# Create output directory and set up logging to BOTH terminal and file
 mkdir -p "$OUTPUT_DIR"
 RUN_LOG="$OUTPUT_DIR/run_$(date +%Y%m%d_%H%M%S).log"
 
-echo "=== Benchmark run started at $(date) ===" | tee "$RUN_LOG"
-echo "=== Full output will be saved to: $RUN_LOG ===" | tee -a "$RUN_LOG"
-echo "" | tee -a "$RUN_LOG"
+# Use exec to redirect all output to both terminal and log file
+exec > >(tee -a "$RUN_LOG") 2>&1
 
-# Run main and tee all output to log file
-main "$@" 2>&1 | tee -a "$RUN_LOG"
+echo "=== Benchmark run started at $(date) ==="
+echo "=== Full output will be saved to: $RUN_LOG ==="
+echo ""
 
-echo "" | tee -a "$RUN_LOG"
-echo "=== Benchmark run completed at $(date) ===" | tee -a "$RUN_LOG"
-echo "=== Full log saved to: $RUN_LOG ===" | tee -a "$RUN_LOG"
+main "$@"
+
+echo ""
+echo "=== Benchmark run completed at $(date) ==="
+echo "=== Full log saved to: $RUN_LOG ==="
