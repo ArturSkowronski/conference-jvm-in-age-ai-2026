@@ -104,7 +104,7 @@ echo ""
 # Using source mode for simplicity (no compilation needed)
 exec "$JAVA" \
   --enable-preview \
-  --source 21 \
+  --source "$JAVA_VERSION" \
   --add-modules jdk.incubator.vector \
   -Xmx8g \
   "$LLAMA3_JAVA" \

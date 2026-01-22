@@ -17,7 +17,7 @@
 // jbang Llama3.java --help
 //
 // Enjoy!
-package com.llama4j;
+// package com.llama4j;
 
 import jdk.incubator.vector.*;
 import sun.misc.Unsafe;
