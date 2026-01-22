@@ -46,7 +46,7 @@ Note: Q4_0 quantized models also work and load faster, but FP16 is used for benc
 ./scripts/run-llama3.sh --chat
 
 # With GraalVM for better performance
-sdk use java 24.ea-graal
+sdk use java 25.1.0-graalvm-dev
 ./scripts/run-llama3.sh --prompt "Tell me a joke"
 ```
 

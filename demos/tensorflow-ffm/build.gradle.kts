@@ -1,3 +1,4 @@
+import java.net.URI
 import java.net.URL
 
 plugins {
@@ -90,41 +91,49 @@ tasks.register("downloadTensorFlow") {
     if (dest.exists() && dest.length() > 0) return@doLast
 
     logger.lifecycle("Downloading TensorFlow C library: ${archive.url}")
-    URL(archive.url).openStream().use { input ->
+    URI(archive.url).toURL().openStream().use { input ->
       dest.outputStream().use { output -> input.copyTo(output) }
     }
+  }
+}
+
+tasks.register<Copy>("unpackTensorFlowZip") {
+  onlyIf {
+    !tensorflowHomeOverride.isPresent && tensorflowArchiveForCurrentPlatform().isZip
+  }
+  dependsOn("downloadTensorFlow")
+  val archive = tensorflowArchiveForCurrentPlatform()
+  val archiveFile = tfArchiveDir.map { it.asFile.resolve(archive.fileName) }
+  from(archiveFile.map { zipTree(it) })
+  into(tfExtractedDir)
+  doFirst {
+    tfExtractedDir.get().asFile.deleteRecursively()
+  }
+}
+
+tasks.register<Exec>("unpackTensorFlowTar") {
+  onlyIf {
+    !tensorflowHomeOverride.isPresent && !tensorflowArchiveForCurrentPlatform().isZip
+  }
+  dependsOn("downloadTensorFlow")
+  val archive = tensorflowArchiveForCurrentPlatform()
+  val archiveFile = tfArchiveDir.map { it.asFile.resolve(archive.fileName) }
+  
+  workingDir(tfExtractedDir)
+  commandLine("tar", "-xzf")
+  argumentProviders.add(CommandLineArgumentProvider {
+    listOf(archiveFile.get().absolutePath)
+  })
+
+  doFirst {
+    tfExtractedDir.get().asFile.mkdirs()
   }
 }
 
 tasks.register("unpackTensorFlow") {
   group = "demos"
   description = "Unpack TensorFlow C library (for the FFM demo) into build/tensorflow/root/."
-
-  dependsOn("downloadTensorFlow")
-  onlyIf { !tensorflowHomeOverride.isPresent }
-
-  doLast {
-    val archive = tensorflowArchiveForCurrentPlatform()
-    val archiveFile = tfArchiveDir.get().asFile.resolve(archive.fileName)
-    val intoDir = tfExtractedDir.get().asFile
-
-    // Clean and recreate target directory
-    intoDir.deleteRecursively()
-    intoDir.mkdirs()
-
-    if (archive.isZip) {
-      copy {
-        from(zipTree(archiveFile))
-        into(intoDir)
-      }
-    } else {
-      // Use native tar to preserve symlinks (Gradle's tarTree doesn't handle them well)
-      exec {
-        workingDir = intoDir
-        commandLine("tar", "-xzf", archiveFile.absolutePath)
-      }
-    }
-  }
+  dependsOn("unpackTensorFlowZip", "unpackTensorFlowTar")
 }
 
 tasks.register<JavaExec>("runTensorFlow") {
