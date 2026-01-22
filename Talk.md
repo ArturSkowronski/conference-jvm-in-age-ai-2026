@@ -460,3 +460,43 @@ All tests using **Llama 3.2 1B Instruct (FP16)** model on macOS ARM64 (Apple Sil
 - If JVMCI errors occur: `export JVMCI_CONFIG_CHECK=ignore` (auto-set in scripts)
 - GPULlama3 requires **FP16 format** models (Q4_K_M not supported)
 - Model location: `~/.llama/models/`
+
+---
+
+## Demo 8: Project Babylon & HAT (Code Reflection & GPU Offloading)
+
+**Goal**: Show how Project Babylon uses Code Reflection to transform and offload Java code to GPUs via HAT (Heterogeneous Accelerator Toolkit).
+
+### What it demonstrates
+- **Code Reflection**: Capturing the intent of Java code as a symbolic model (Code Model).
+- **HAT (Heterogeneous Accelerator Toolkit)**: A programming model for hardware accelerators.
+- **Ahead-of-Time / Just-in-Time Transformation**: Compiling Java methods to OpenCL or CUDA kernels.
+- **ND-Range API**: Programming GPUs using familiar Java constructs.
+
+### Commands
+
+```bash
+cd demos/babylon
+
+# Run Matrix Multiplication demo via HAT on OpenCL backend
+./run-babylon.sh
+```
+
+### Expected output (on Apple Silicon / OpenCL supported systems)
+```
+[INFO] NDRangeConfiguration: _2DTILING
+[INFO] Starting Matrix Multiplication with size: 1024x1024
+Elapsed Time: 668007625 ns
+Result is correct!
+...
+Elapsed Time: 7682583 ns
+Result is correct!
+```
+
+**Key Observation**: The second iteration is orders of magnitude faster (~7ms) as the GPU kernel is compiled and data is cached.
+
+### Key source files
+- `demos/babylon/demo/babylon/HatMatMul.java` (Kernel logic using @Reflect)
+- `src/jdk.incubator.code` (Code Reflection API in Babylon JDK)
+
+---

@@ -87,7 +87,17 @@
       "Bash(expect:*)",
       "Bash(./scripts/run-cloud-benchmark.sh:*)",
       "Bash(/opt/homebrew/bin/bash:*)",
-      "Bash(/usr/local/bin/bash:*)"
+      "Bash(/usr/local/bin/bash:*)",
+      "Bash(jar tf:*)",
+      "Bash(javap:*)",
+      "Bash(ls:*)",
+      "Bash(unzip:*)",
+      "Bash(/Users/askowronski/Priv/talks/conference-jvm-in-age-ai-2026/tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl/bin/java:*)",
+      "Bash($JAVA_HOME/bin/java -version)",
+      "Bash(md5:*)",
+      "Bash(jar --describe-module:*)",
+      "Bash(./mvnw clean package:*)",
+      "Bash(TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl tornadovm-demo/scripts/run-gpullama3.sh:*)"
     ]
   }
 }
