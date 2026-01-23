@@ -113,7 +113,7 @@ def main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default=str(get_project_root() / "models/Llama-3.2-1B-Instruct-f16.gguf"),
+        default=str(Path.home() / ".llama/models/Llama-3.2-1B-Instruct-f16.gguf"),
         help="Path to the GGUF model file",
     )
     parser.add_argument(

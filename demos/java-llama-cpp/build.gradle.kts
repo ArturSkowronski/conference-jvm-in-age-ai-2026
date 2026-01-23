@@ -22,7 +22,7 @@ tasks.register<JavaExec>("runLlama") {
   classpath = sourceSets.main.get().runtimeClasspath
   mainClass.set(application.mainClass)
 
-  val defaultModel = "${rootProject.projectDir}/models/Llama-3.2-1B-Instruct-f16.gguf"
+  val defaultModel = "${System.getProperty("user.home")}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf"
   val defaultPrompt = "Tell me a short joke about programming."
 
   val modelPath = if (project.hasProperty("model")) {
@@ -43,7 +43,7 @@ tasks.register<JavaExec>("runLlama") {
 // Make the default 'run' task work with sensible defaults
 tasks.named<JavaExec>("run") {
   args = listOf(
-    "${rootProject.projectDir}/models/Llama-3.2-1B-Instruct-f16.gguf",
+    "${System.getProperty("user.home")}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf",
     "Tell me a short joke about programming."
   )
 }

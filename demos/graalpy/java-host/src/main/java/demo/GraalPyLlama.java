@@ -20,7 +20,7 @@ public final class GraalPyLlama {
         String projectRoot = projectRootDir.getAbsolutePath();
         String venvSitePackages = Paths.get(projectRoot, "demos", "graalpy-llama", ".venv", "lib", "python3.12", "site-packages").toString();
         String scriptPath = Paths.get(projectRoot, "demos", "graalpy-llama", "llama_inference.py").toString();
-        String modelPath = Paths.get(projectRoot, "models", "Llama-3.2-1B-Instruct-f16.gguf").toString();
+        String modelPath = Paths.get(System.getProperty("user.home"), ".llama", "models", "Llama-3.2-1B-Instruct-f16.gguf").toString();
 
         System.out.println("[GraalPy] ============================================================");
         System.out.println("[GraalPy] GraalPy Llama Inference Host");

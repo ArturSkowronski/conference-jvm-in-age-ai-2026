@@ -12,7 +12,7 @@ ROOT_DIR="$(dirname "$(dirname "$PROJECT_DIR")")"
 LLAMA3_JAVA="$PROJECT_DIR/Llama3.java"
 
 # Default values
-MODEL_PATH="$ROOT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf"
+MODEL_PATH="$HOME/.llama/models/Llama-3.2-1B-Instruct-f16.gguf"
 PROMPT="Tell me a short joke about programming."
 MAX_TOKENS=256
 MODE="--instruct"
@@ -44,7 +44,7 @@ while [[ $# -gt 0 ]]; do
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  --model PATH      Path to GGUF model (default: <project>/models/Llama-3.2-1B-Instruct-f16.gguf)"
+      echo "  --model PATH      Path to GGUF model (default: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf)"
       echo "  --prompt TEXT     Prompt for the model"
       echo "  --max-tokens N    Maximum tokens to generate (default: 256)"
       echo "  --chat            Run in chat mode"
