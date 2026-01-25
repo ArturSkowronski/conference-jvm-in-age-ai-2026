@@ -360,6 +360,10 @@ java --enable-preview --source 21 --add-modules jdk.incubator.vector \
 Run with different JDKs to compare Vector API performance:
 
 ```bash
+# Run with JDK 21 (GraalVM CE)
+JAVA_HOME=~/.sdkman/candidates/java/21.0.2-graalce \
+  ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32
+
 # Run with JDK 25 (Temurin)
 JAVA_HOME=~/.sdkman/candidates/java/25-tem \
   ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32
