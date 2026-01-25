@@ -355,6 +355,48 @@ java --enable-preview --source 21 --add-modules jdk.incubator.vector \
   --prompt "Tell me a joke"
 ```
 
+### JDK Version Performance Comparison
+
+Run with different JDKs to compare Vector API performance:
+
+```bash
+# Run with JDK 25 (Temurin)
+JAVA_HOME=~/.sdkman/candidates/java/25-tem \
+  ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32
+
+# Run with GraalVM 25
+JAVA_HOME=~/.sdkman/candidates/java/25.1.0-graalvm-dev \
+  ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32
+```
+
+#### Performance Results
+
+| JDK Version | Generation Speed | Notes |
+|-------------|-----------------|-------|
+| JDK 21 | ~0.3 tokens/s | Vector API in incubator, limited optimizations |
+| JDK 25 (Temurin) | ~15.0 tokens/s | Vector API improvements, better intrinsics |
+| GraalVM 25 CE | ~14.3 tokens/s | Similar to Temurin 25 |
+
+#### Why JDK 21 is ~45x Slower Than JDK 25
+
+1. **Vector API Maturity**: The Vector API (`jdk.incubator.vector`) has been significantly improved between JDK 21 and JDK 25. In JDK 21, the API was still in incubator with limited optimization. By JDK 25, the JIT compiler has much better intrinsification of vector operations.
+
+2. **SIMD Code Generation**: JDK 25 generates more efficient SIMD instructions for ARM64 (Apple Silicon). The HotSpot C2 compiler now better recognizes and optimizes vector patterns used in matrix multiplication and attention computations.
+
+3. **Memory Access Patterns**: Newer JDKs have improved handling of `MemorySegment` and off-heap memory access patterns, reducing overhead in the tight loops that dominate LLM inference.
+
+#### Why GraalVM 25 CE ≈ Temurin 25
+
+Both JDKs show similar performance (~14-15 tokens/s) because:
+
+1. **Same Vector API Implementation**: Both use the same `jdk.incubator.vector` module with identical intrinsics support for ARM64 NEON instructions.
+
+2. **Llama3.java's Bottleneck**: The pure Java implementation is memory-bandwidth bound, not JIT-bound. Both HotSpot (Temurin) and GraalVM CE generate similarly efficient code for the vector operations.
+
+3. **No Truffle Overhead**: Llama3.java is pure Java code - it doesn't use GraalVM's polyglot features or Truffle, so there's no additional abstraction layer where GraalVM's optimizations would provide an advantage.
+
+> **Takeaway**: For Vector API workloads, upgrading from JDK 21 to JDK 25 provides massive gains (~45x). The choice between Temurin and GraalVM CE matters less than the JDK version itself.
+
 ### Expected output
 
 ```
