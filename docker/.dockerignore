@@ -1,0 +1,12 @@
+.git
+**/.gradle/
+**/build/
+.venv
+**/.venv/
+benchmark-results/
+models/
+*.gguf
+.DS_Store
+**/.DS_Store
+docker/
+.claude/
