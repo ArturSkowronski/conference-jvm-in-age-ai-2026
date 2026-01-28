@@ -157,7 +157,7 @@ echo '>>> Cloning project...'
 $CLONE_CMD
 
 echo '>>> Installing JDK and build tools for non-Docker benchmarks...'
-sudo apt-get install -y -qq software-properties-common cmake ocl-icd-libopencl1 clinfo
+sudo apt-get install -y -qq software-properties-common cmake maven ocl-icd-libopencl1 clinfo
 sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 sudo apt-get update -qq
 sudo apt-get install -y -qq gcc-13 g++-13 libstdc++6
