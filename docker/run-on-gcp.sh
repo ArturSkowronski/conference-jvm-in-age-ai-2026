@@ -156,18 +156,126 @@ fi
 echo '>>> Cloning project...'
 $CLONE_CMD
 
-echo '>>> Building Docker image (this will take a while on first run)...'
+echo '>>> Installing JDK and build tools for non-Docker benchmarks...'
+sudo apt-get install -y -qq software-properties-common cmake ocl-icd-libopencl1 clinfo
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt-get update -qq
+sudo apt-get install -y -qq gcc-13 g++-13 libstdc++6
+
+# Download JDK 25 and GraalVM 21
+mkdir -p ~/jdks
+if [ ! -d ~/jdks/jdk-25 ]; then
+  curl -fL -o /tmp/jdk-25.tar.gz "https://api.adoptium.net/v3/binary/latest/25/ea/linux/x64/jdk/hotspot/normal/eclipse"
+  mkdir -p ~/jdks/jdk-25 && tar -xzf /tmp/jdk-25.tar.gz --strip-components=1 -C ~/jdks/jdk-25
+  rm /tmp/jdk-25.tar.gz
+fi
+if [ ! -d ~/jdks/graalvm-21 ]; then
+  curl -fL -o /tmp/graalvm-21.tar.gz "https://download.oracle.com/graalvm/21/latest/graalvm-jdk-21_linux-x64_bin.tar.gz"
+  mkdir -p ~/jdks/graalvm-21 && tar -xzf /tmp/graalvm-21.tar.gz --strip-components=1 -C ~/jdks/graalvm-21
+  rm /tmp/graalvm-21.tar.gz
+fi
+
+export JAVA_HOME=~/jdks/jdk-25
+export JDK_21=~/jdks/graalvm-21
+export PATH="\$JAVA_HOME/bin:\$PATH"
+
+# Download TornadoVM OpenCL SDK
+if [ ! -d ~/tornadovm ]; then
+  curl -fL -o /tmp/tornadovm.tar.gz "https://github.com/beehive-lab/TornadoVM/releases/download/v2.2.0/tornadovm-2.2.0-opencl-linux-amd64.tar.gz"
+  mkdir -p ~/tornadovm && tar -xzf /tmp/tornadovm.tar.gz -C ~/tornadovm
+  rm /tmp/tornadovm.tar.gz
+fi
+export TORNADOVM_HOME=~/tornadovm/tornadovm-2.2.0-opencl
+export TORNADOVM_BACKEND=opencl
+export JVMCI_CONFIG_CHECK=ignore
+
+# Set up OpenCL ICD for NVIDIA
+sudo mkdir -p /etc/OpenCL/vendors
+echo "libnvidia-opencl.so.1" | sudo tee /etc/OpenCL/vendors/nvidia.icd >/dev/null
+
+# Build java-llama.cpp with CUDA
+echo '>>> Building java-llama.cpp with CUDA support...'
+if [ ! -f ~/jllama-cuda/libjllama.so ]; then
+  git clone --depth 1 https://github.com/kherud/java-llama.cpp.git /tmp/java-llama-cpp
+  cd /tmp/java-llama-cpp
+  mvn compile -q
+  cmake -B build -DGGML_CUDA=ON
+  cmake --build build --config Release -j\$(nproc)
+  mkdir -p ~/jllama-cuda
+  find /tmp/java-llama-cpp -name "libjllama.so" -exec cp {} ~/jllama-cuda/ \;
+  cd ~/benchmark
+  rm -rf /tmp/java-llama-cpp
+fi
+export JLLAMA_CUDA_LIB=~/jllama-cuda
+export LLAMA_GPU_LAYERS=99
+
+# Download model
+echo '>>> Downloading model...'
+mkdir -p ~/models ~/.llama
+ln -sfn ~/models ~/.llama/models
+export MODEL_PATH=~/models/Llama-3.2-1B-Instruct-f16.gguf
+export LLAMA_MODEL_DIR=~/models
+if [ ! -f ~/models/Llama-3.2-1B-Instruct-f16.gguf ]; then
+  curl -fL --progress-bar -o ~/models/Llama-3.2-1B-Instruct-f16.gguf \
+    "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+fi
+
+# ── Run non-Docker benchmarks ──
+echo ''
+echo '============================================================'
+echo '  NON-DOCKER BENCHMARKS (bare metal)'
+echo '============================================================'
+mkdir -p ~/results/bare-metal
+
 cd ~/benchmark
+chmod +x gradlew scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh 2>/dev/null || true
+
+# Llama3.java JDK 21
+echo '>>> [Bare] Llama3.java (JDK 21)...'
+JAVA_HOME=\$JDK_21 ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32 2>&1 | tee ~/results/bare-metal/llama3java_jdk21.log || true
+
+# Llama3.java JDK 25
+echo '>>> [Bare] Llama3.java (JDK 25)...'
+JAVA_HOME=~/jdks/jdk-25 ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32 2>&1 | tee ~/results/bare-metal/llama3java_jdk25.log || true
+
+# java-llama.cpp with CUDA
+echo '>>> [Bare] java-llama.cpp (CUDA)...'
+./gradlew :demos:java-llama-cpp:run --no-daemon --console=plain 2>&1 | tee ~/results/bare-metal/java_llama_cpp_cuda.log || true
+
+# JCuda
+echo '>>> [Bare] JCuda...'
+./gradlew :demos:jcuda:run --no-daemon --console=plain 2>&1 | tee ~/results/bare-metal/jcuda.log || true
+
+# TornadoVM VectorAdd
+echo '>>> [Bare] TornadoVM VectorAdd...'
+JAVA_HOME=\$JDK_21 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd.log || true
+
+# TornadoVM GPULlama3
+echo '>>> [Bare] TornadoVM GPULlama3...'
+JAVA_HOME=\$JDK_21 ./tornadovm-demo/scripts/run-gpullama3.sh --model \$MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3.log || true
+
+echo ''
+echo '============================================================'
+echo '  NON-DOCKER BENCHMARKS COMPLETE'
+echo '============================================================'
+
+# ── Run Docker benchmarks ──
+echo ''
+echo '============================================================'
+echo '  DOCKER BENCHMARKS'
+echo '============================================================'
+
+echo '>>> Building Docker image (this will take a while on first run)...'
 sudo docker build -t jvm-ai-benchmark -f docker/Dockerfile .
 
-echo '>>> Running benchmarks...'
-mkdir -p ~/models ~/results
+echo '>>> Running Docker benchmarks...'
+mkdir -p ~/results/docker
 sudo docker run --rm --gpus all \
   -v ~/models:/models \
-  -v ~/results:/results \
+  -v ~/results/docker:/results \
   jvm-ai-benchmark
 
-echo '>>> Benchmarks complete!'
+echo '>>> All benchmarks complete!'
 REMOTE_SCRIPT
 )"
 
@@ -175,14 +283,20 @@ REMOTE_SCRIPT
 echo ""
 echo ">>> Downloading results..."
 
-mkdir -p "$PROJECT_DIR/benchmark-results/gcp"
+mkdir -p "$PROJECT_DIR/benchmark-results/gcp/bare-metal" "$PROJECT_DIR/benchmark-results/gcp/docker"
 gcloud compute scp --recurse --zone="$ZONE" --project="$GCP_PROJECT" \
-  "$VM_NAME":~/results/* \
-  "$PROJECT_DIR/benchmark-results/gcp/"
+  "$VM_NAME":~/results/bare-metal/* \
+  "$PROJECT_DIR/benchmark-results/gcp/bare-metal/" 2>/dev/null || true
+gcloud compute scp --recurse --zone="$ZONE" --project="$GCP_PROJECT" \
+  "$VM_NAME":~/results/docker/* \
+  "$PROJECT_DIR/benchmark-results/gcp/docker/" 2>/dev/null || true
 
 echo ""
 echo ">>> Results saved to: benchmark-results/gcp/"
-ls -la "$PROJECT_DIR/benchmark-results/gcp/"
+echo "--- Bare metal results ---"
+ls -la "$PROJECT_DIR/benchmark-results/gcp/bare-metal/" 2>/dev/null || echo "  (none)"
+echo "--- Docker results ---"
+ls -la "$PROJECT_DIR/benchmark-results/gcp/docker/" 2>/dev/null || echo "  (none)"
 
 # ── Step 4: Optionally delete VM ───────────────────────────────────────────
 if [[ "$DELETE_AFTER" == "true" ]]; then
