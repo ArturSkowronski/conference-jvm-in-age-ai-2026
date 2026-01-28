@@ -126,6 +126,20 @@ set -euo pipefail
 echo '>>> Verifying GPU...'
 nvidia-smi || { echo 'GPU not ready yet'; exit 1; }
 
+echo '>>> Installing Docker...'
+if ! command -v docker &>/dev/null; then
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq apt-transport-https ca-certificates curl gnupg lsb-release
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg 2>/dev/null || true
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io
+  sudo systemctl start docker
+  sudo systemctl enable docker
+fi
+
 echo '>>> Installing nvidia-container-toolkit...'
 if ! command -v nvidia-ctk &>/dev/null; then
   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
