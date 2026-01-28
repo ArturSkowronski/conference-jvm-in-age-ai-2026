@@ -56,8 +56,16 @@ public final class JavaLlamaCppDemo {
 
     // Configure model parameters
     System.out.println("[java-llama.cpp] Configuring model parameters...");
+    int gpuLayers = Integer.parseInt(System.getenv().getOrDefault("LLAMA_GPU_LAYERS", "0"));
     ModelParameters modelParams = new ModelParameters()
         .setModel(modelPath);
+
+    if (gpuLayers > 0) {
+      modelParams.setGpuLayers(gpuLayers);
+      System.out.println("[java-llama.cpp] GPU offload enabled: " + gpuLayers + " layers");
+    } else {
+      System.out.println("[java-llama.cpp] GPU offload disabled (set LLAMA_GPU_LAYERS=99 to enable)");
+    }
 
     try (LlamaModel model = new LlamaModel(modelParams)) {
       long loadTime = System.currentTimeMillis() - loadStart;

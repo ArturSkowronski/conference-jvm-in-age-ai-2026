@@ -85,6 +85,8 @@ detect_environment() {
   if [[ "$HAS_NVIDIA_GPU" == "true" ]]; then
     nvidia-smi
     echo ""
+    # Enable GPU offload for java-llama.cpp
+    export LLAMA_GPU_LAYERS=99
   else
     warn "No NVIDIA GPU detected. GPU demos will be skipped."
   fi
@@ -262,8 +264,8 @@ EOF
 ## Notes
 
 - Model: Llama-3.2-1B-Instruct-f16.gguf (FP16, ~2.5GB)
-- TornadoVM uses PTX backend (NVIDIA CUDA)
-- java-llama.cpp runs in CPU mode (prebuilt Maven native)
+- TornadoVM uses OpenCL backend (NVIDIA GPU)
+- java-llama.cpp uses CUDA-built native with GPU offload (all layers)
 - Individual demo logs saved alongside this report
 EOF
 

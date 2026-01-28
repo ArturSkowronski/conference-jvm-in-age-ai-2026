@@ -13,6 +13,12 @@ dependencies {
 
 application {
   mainClass.set("conf.jvm.llama.JavaLlamaCppDemo")
+
+  // Use CUDA-built native library if available
+  val cudaLibPath = System.getenv("JLLAMA_CUDA_LIB")
+  if (cudaLibPath != null && File(cudaLibPath).exists()) {
+    applicationDefaultJvmArgs = listOf("-Dde.kherud.llama.lib.path=$cudaLibPath")
+  }
 }
 
 tasks.register<JavaExec>("runLlama") {

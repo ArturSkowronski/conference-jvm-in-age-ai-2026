@@ -54,7 +54,7 @@ RUN rm -f /etc/apt/trusted.gpg.d/ubuntu-keyring-2012-cdimage.gpg && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C && \
     apt-get update && apt-get install -y --no-install-recommends \
       git curl wget unzip bc \
-      build-essential software-properties-common \
+      build-essential software-properties-common cmake \
       maven \
       python3 python3-pip python3-venv \
       ocl-icd-libopencl1 opencl-headers clinfo \
@@ -94,6 +94,18 @@ COPY . /workspace/
 # Make scripts executable
 RUN chmod +x scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh docker/entrypoint.sh 2>/dev/null || true
 RUN chmod +x gradlew
+
+# Build java-llama.cpp native library with CUDA support
+RUN git clone --depth 1 https://github.com/kherud/java-llama.cpp.git /tmp/java-llama-cpp && \
+    cd /tmp/java-llama-cpp && \
+    mvn compile -q && \
+    cmake -B build -DGGML_CUDA=ON && \
+    cmake --build build --config Release -j$(nproc) && \
+    mkdir -p /opt/jllama-cuda && \
+    cp build/libjllama.so /opt/jllama-cuda/ && \
+    rm -rf /tmp/java-llama-cpp
+
+ENV JLLAMA_CUDA_LIB=/opt/jllama-cuda
 
 # Pre-warm Gradle dependency cache
 RUN ./gradlew --no-daemon dependencies || true
