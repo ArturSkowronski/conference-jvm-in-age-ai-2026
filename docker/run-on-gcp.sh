@@ -81,7 +81,7 @@ gcloud compute instances create "$VM_NAME" \
   --maintenance-policy=TERMINATE \
   --boot-disk-size="$BOOT_DISK_SIZE" \
   --boot-disk-type=pd-ssd \
-  --image-family=common-cu121-ubuntu-2204 \
+  --image-family=common-cu128-ubuntu-2204-nvidia-570 \
   --image-project=deeplearning-platform-release \
   --provisioning-model=SPOT \
   --scopes=default,storage-ro \
