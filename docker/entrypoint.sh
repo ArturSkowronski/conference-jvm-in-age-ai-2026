@@ -94,6 +94,12 @@ detect_environment() {
 download_models() {
   mkdir -p "$LLAMA_MODEL_DIR"
 
+  # Create symlink so scripts using $HOME/.llama/models also find the model
+  if [[ "$LLAMA_MODEL_DIR" != "$HOME/.llama/models" ]]; then
+    mkdir -p "$HOME/.llama"
+    ln -sfn "$LLAMA_MODEL_DIR" "$HOME/.llama/models"
+  fi
+
   FP16_FILE="Llama-3.2-1B-Instruct-f16.gguf"
   FP16_URL="https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 

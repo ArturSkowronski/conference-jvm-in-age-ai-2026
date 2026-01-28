@@ -33,9 +33,9 @@ RUN curl -fL -o jdk-25.tar.gz \
     tar -xzf jdk-25.tar.gz --strip-components=1 -C /opt/jdk/jdk-25 && \
     rm jdk-25.tar.gz
 
-# --- TornadoVM SDK 2.2.0 PTX (NVIDIA CUDA backend) ---
+# --- TornadoVM SDK 2.2.0 OpenCL (required by GPULlama3.java) ---
 RUN curl -fL -o tornadovm.tar.gz \
-      "https://github.com/beehive-lab/TornadoVM/releases/download/v2.2.0/tornadovm-2.2.0-ptx-linux-amd64.tar.gz" && \
+      "https://github.com/beehive-lab/TornadoVM/releases/download/v2.2.0/tornadovm-2.2.0-opencl-linux-amd64.tar.gz" && \
     mkdir -p /opt/tornadovm && \
     tar -xzf tornadovm.tar.gz -C /opt/tornadovm && \
     rm tornadovm.tar.gz
@@ -54,9 +54,13 @@ RUN rm -f /etc/apt/trusted.gpg.d/ubuntu-keyring-2012-cdimage.gpg && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C && \
     apt-get update && apt-get install -y --no-install-recommends \
       git curl wget unzip bc \
-      build-essential \
+      build-essential software-properties-common \
       maven \
       python3 python3-pip python3-venv \
+      ocl-icd-libopencl1 opencl-headers clinfo \
+    && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gcc-13 g++-13 libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy JDKs and TornadoVM from builder
@@ -69,12 +73,16 @@ ENV JAVA_HOME=/opt/jdk/jdk-25
 ENV JDK_21=/opt/jdk/graalvm-21
 ENV JDK_25_TEM=/opt/jdk/jdk-25
 ENV JDK_25_GRAAL=""
-ENV TORNADOVM_HOME=/opt/tornadovm/tornadovm-2.2.0-ptx
-ENV TORNADOVM_BACKEND=ptx
+ENV TORNADOVM_HOME=/opt/tornadovm/tornadovm-2.2.0-opencl
+ENV TORNADOVM_BACKEND=opencl
 ENV JVMCI_CONFIG_CHECK=ignore
 ENV MODEL_PATH=/models/Llama-3.2-1B-Instruct-f16.gguf
 ENV LLAMA_MODEL_DIR=/models
 ENV PATH="/opt/jdk/jdk-25/bin:${PATH}"
+
+# OpenCL ICD configuration for NVIDIA GPU
+RUN mkdir -p /etc/OpenCL/vendors && \
+    echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
 # Model and results mount points
 RUN mkdir -p /models /results
