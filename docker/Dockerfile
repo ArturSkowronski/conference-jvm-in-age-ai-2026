@@ -13,9 +13,9 @@
 # ---------------------------------------------------------------------------
 # Stage 1: Download JDKs and TornadoVM SDK
 # ---------------------------------------------------------------------------
-FROM ubuntu:22.04 AS builder
+FROM alpine:3.20 AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl tar
 
 WORKDIR /downloads
 
@@ -47,12 +47,16 @@ FROM nvidia/cuda:12.6.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Fix GPG keyring for cross-platform builds (ARM64 QEMU can't read old keyring format)
+RUN rm -f /etc/apt/trusted.gpg.d/ubuntu-keyring-2012-cdimage.gpg && \
+    apt-get update 2>/dev/null || true && \
+    apt-get install -y --allow-unauthenticated ca-certificates gnupg && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C && \
+    apt-get update && apt-get install -y --no-install-recommends \
       git curl wget unzip bc \
       build-essential \
       maven \
       python3 python3-pip python3-venv \
-      ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy JDKs and TornadoVM from builder
