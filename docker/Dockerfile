@@ -102,7 +102,7 @@ RUN git clone --depth 1 https://github.com/kherud/java-llama.cpp.git /tmp/java-l
     cmake -B build -DGGML_CUDA=ON && \
     cmake --build build --config Release -j$(nproc) && \
     mkdir -p /opt/jllama-cuda && \
-    cp build/libjllama.so /opt/jllama-cuda/ && \
+    find /tmp/java-llama-cpp -name "libjllama.so" -exec cp {} /opt/jllama-cuda/ \; && \
     rm -rf /tmp/java-llama-cpp
 
 ENV JLLAMA_CUDA_LIB=/opt/jllama-cuda
