@@ -1,0 +1,15 @@
+=== TornadoVM Demo Runner ===
+Using JAVA_HOME: /home/askowronski/jdks/graalvm-21
+Using existing TORNADOVM_HOME: /home/askowronski/tornadovm/tornadovm-2.2.0-opencl
+Compiling TornadoVM demo...
+Compilation successful!
+
+=== TornadoVM Demo ===
+Devices:
+Driver: [36mOpenCL[0m
+  Tornado device=0:0  (DEFAULT)
+		Global Memory Size: 14.6 GB
+
+WARNING: Using incubator modules: jdk.incubator.vector
+TornadoVM: size=10000000, best=10.248 ms, throughput=10.91 GB/s
+Verify: OK

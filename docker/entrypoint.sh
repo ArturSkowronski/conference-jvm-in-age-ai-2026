@@ -147,7 +147,7 @@ run_demo() {
   if [[ $exit_code -eq 0 ]]; then
     # Extract tokens/sec if present
     local toks
-    toks=$(grep -oE "([0-9]+\.?[0-9]*) (tokens?/s|tok/s)|Tokens/sec: ([0-9]+\.?[0-9]*)|generation: ([0-9]+\.?[0-9]*) tokens" "$log_file" | tail -1 | grep -oE "[0-9]+\.[0-9]+" || echo "")
+    toks=$(grep -oE "([0-9]+\.?[0-9]*) (tokens?/s|tok/s)|Tokens/sec: ([0-9]+\.?[0-9]*)|generation: ([0-9]+\.?[0-9]*) tokens|tok/s: ([0-9]+\.?[0-9]*)" "$log_file" | tail -1 | grep -oE "[0-9]+\.[0-9]+" || echo "")
     if [[ -n "$toks" ]]; then
       success "$name completed in ${duration}s — ${toks} tok/s"
       set_result "$name" "OK: ${toks} tok/s (${duration}s)"

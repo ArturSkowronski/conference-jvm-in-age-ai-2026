@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-01-29T15:24:34+00:00",
+  "hostname": "cfccbc5cedcc",
+  "environment": {
+    "os": "Linux x86_64",
+    "ram_gb": "14",
+    "nvidia_gpu": "Tesla T4",
+    "cuda_driver": "570.211.01",
+    "cuda_toolkit": "12.6",
+    "jdk_25": "25.0.3-beta",
+    "jdk_21": "21.0.10",
+    "tornadovm_backend": "opencl"
+  },
+  "results": {
+    "Llama3.java (JDK 21)": "OK: 0.52 tok/s (65s)",
+    "Llama3.java (JDK 25 Temurin)": "OK: 4.76 tok/s (11s)",
+    "java-llama.cpp": "OK: 65.48 tok/s (19s)",
+    "JCuda": "OK (12s)",
+    "TornadoVM VectorAdd": "OK (9s)",
+    "TornadoVM GPULlama3": "OK (33s)",
+    "TensorFlow FFM": "OK (16s)",
+    "GraalPy Java Host": "OK (17s)"
+  }
+}

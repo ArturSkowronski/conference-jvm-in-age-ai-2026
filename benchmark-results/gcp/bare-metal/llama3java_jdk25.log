@@ -1,0 +1,40 @@
+============================================================
+Llama3.java - Pure Java LLM Inference
+============================================================
+Java: openjdk version "25.0.3-beta" 2026-04-21
+Model: /home/askowronski/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
+Mode: --instruct
+============================================================
+
+WARNING: Using incubator modules: jdk.incubator.vector
+/home/askowronski/benchmark/demos/llama3-java/Llama3.java:23: warning: Unsafe is internal proprietary API and may be removed in a future release
+import sun.misc.Unsafe;
+               ^
+/home/askowronski/benchmark/demos/llama3-java/Llama3.java:1575: warning: Unsafe is internal proprietary API and may be removed in a future release
+    static final Unsafe UNSAFE;
+                 ^
+/home/askowronski/benchmark/demos/llama3-java/Llama3.java:1579: warning: Unsafe is internal proprietary API and may be removed in a future release
+            Field f = Unsafe.class.getDeclaredField("theUnsafe");
+                      ^
+/home/askowronski/benchmark/demos/llama3-java/Llama3.java:1581: warning: Unsafe is internal proprietary API and may be removed in a future release
+            UNSAFE = (Unsafe) f.get(null);
+                      ^
+/home/askowronski/benchmark/demos/llama3-java/Llama3.java:1589: warning: [removal] getShort(long) in Unsafe has been deprecated and marked for removal
+        return UNSAFE.getShort(memorySegment.address() + offset);
+                     ^
+/home/askowronski/benchmark/demos/llama3-java/Llama3.java:1594: warning: [removal] getByte(long) in Unsafe has been deprecated and marked for removal
+        return UNSAFE.getByte(memorySegment.address() + offset);
+                     ^
+6 warnings
+Parse /home/askowronski/.llama/models/Llama-3.2-1B-Instruct-f16.gguf: 1514 millis
+Load LlaMa model: 581 millis
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::getShort has been called by FloatTensor (file:/home/askowronski/benchmark/demos/llama3-java/Llama3.java)
+WARNING: Please consider reporting this to the maintainers of class FloatTensor
+WARNING: sun.misc.Unsafe::getShort will be removed in a future release
+Here's one:
+
+Why did the programmer quit his job?
+
+Because he didn
+context: 33/32 prompt: 4.94 tokens/s (18) generation: 5.15 tokens/s (15)

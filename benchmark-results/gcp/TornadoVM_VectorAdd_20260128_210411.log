@@ -1,0 +1,44 @@
+=== TornadoVM Demo Runner ===
+Using JAVA_HOME: /opt/jdk/graalvm-21
+Using existing TORNADOVM_HOME: /opt/tornadovm/tornadovm-2.2.0-ptx
+Compiling TornadoVM demo...
+Compilation successful!
+
+=== TornadoVM Demo ===
+Devices:
+
+
+================================================================================
+WARNING: C++ Standard Library Compatibility Issue Detected!
+================================================================================
+
+TornadoVM native library: libtornado-levelzero.so
+Required version: GLIBCXX_3.4.32
+Available version: GLIBCXX_3.4.30
+
+CAUSE:
+  The TornadoVM SDK was built on a system with a newer GCC version
+  than what is available on this system.
+
+SYMPTOMS:
+  - 'tornado --devices' will fail with ExceptionInInitializerError
+  - Error: 'GLIBCXX_X.X.XX not found'
+  - UnsatisfiedLinkError for native libraries
+
+SOLUTION:
+
+Upgrade GCC/libstdc++ on this system
+  Ubuntu/Debian:
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt update
+    sudo apt install gcc-13 g++-13 libstdc++6
+
+SYSTEM REQUIREMENTS:
+  This SDK requires:
+    - GCC 13+ / Ubuntu 24.04+ / Fedora 38+
+
+================================================================================
+TornadoVM cannot continue with incompatible libstdc++ version.
+Please follow the recommended solution to resolve this issue.
+================================================================================
+

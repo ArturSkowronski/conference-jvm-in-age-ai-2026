@@ -1,0 +1,39 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/root/.gradle/wrapper/dists/gradle-9.3.0-bin/79n14ral3mx1ozqr3csh2u872/gradle-9.3.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :demos:java-llama-cpp:compileJava
+> Task :demos:java-llama-cpp:processResources NO-SOURCE
+> Task :demos:java-llama-cpp:classes
+
+> Task :demos:java-llama-cpp:run FAILED
+[java-llama.cpp] ============================================================
+[java-llama.cpp] java-llama.cpp Inference Demo
+[java-llama.cpp] ============================================================
+[java-llama.cpp] Java: 25.0.3-beta
+[java-llama.cpp] VM: OpenJDK 64-Bit Server VM
+[java-llama.cpp] OS: Linux amd64
+[java-llama.cpp] ============================================================
+
+[java-llama.cpp] Checking model file...
+[java-llama.cpp] ERROR: Model file not found: /root/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
+[java-llama.cpp] Download the model with:
+[java-llama.cpp]   ./scripts/download-models.sh --fp16
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':demos:java-llama-cpp:run'.
+> Process 'command '/opt/jdk/jdk-25/bin/java'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 11s
+2 actionable tasks: 2 executed
