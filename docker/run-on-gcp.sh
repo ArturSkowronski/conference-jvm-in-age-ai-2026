@@ -196,10 +196,13 @@ echo "libnvidia-opencl.so.1" | sudo tee /etc/OpenCL/vendors/nvidia.icd >/dev/nul
 # Build java-llama.cpp with CUDA
 echo '>>> Building java-llama.cpp with CUDA support...'
 if [ ! -f ~/jllama-cuda/libjllama.so ]; then
+  # Ensure CUDA compiler is on PATH for cmake detection
+  export PATH="/usr/local/cuda/bin:\$PATH"
+  export CUDACXX=/usr/local/cuda/bin/nvcc
   git clone --depth 1 https://github.com/kherud/java-llama.cpp.git /tmp/java-llama-cpp
   cd /tmp/java-llama-cpp
   mvn compile -q
-  cmake -B build -DGGML_CUDA=ON
+  cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
   cmake --build build --config Release -j\$(nproc)
   mkdir -p ~/jllama-cuda
   find /tmp/java-llama-cpp -name "libjllama.so" -exec cp {} ~/jllama-cuda/ \;
