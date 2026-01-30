@@ -70,4 +70,60 @@ If you install a GraalVM distribution, you can add Python with `gu` and use `gra
 
 ## TornadoVM (notes)
 
-TornadoVM requires a compatible JDK + its runtime; treat it as a separate SDKMAN “java” candidate and point `.sdkmanrc` at it when needed.
+TornadoVM requires a compatible JDK + its runtime; treat it as a separate SDKMAN "java" candidate and point `.sdkmanrc` at it when needed.
+
+## Docker / GCP GPU Benchmarks
+
+The full benchmark suite (all demos + LLM inference) can be run inside a Docker container on any machine with an NVIDIA GPU, or deployed to a GCP Spot instance.
+
+### Docker (local or any NVIDIA GPU machine)
+
+```bash
+# Build the image (includes CUDA-enabled java-llama.cpp, TornadoVM, JDK 25 + JDK 21)
+docker build -t jvm-ai-benchmark -f docker/Dockerfile .
+
+# Run all benchmarks (model is downloaded automatically if missing)
+docker run --rm --gpus all \
+  -v ~/models:/models \
+  -v ~/results:/results \
+  jvm-ai-benchmark
+```
+
+Results (Markdown + JSON + per-demo logs) are written to the `/results` volume.
+
+### GCP Spot Instance (automated)
+
+```bash
+# Deploy, run bare-metal + Docker benchmarks, fetch results, delete the VM:
+./docker/run-on-gcp.sh --zone europe-west1-b --gpu nvidia-tesla-t4 --delete
+```
+
+This creates an `n1-standard-4` Spot VM with a Tesla T4 (~$0.35/hr), installs all dependencies, runs 6 bare-metal demos + 8 Docker demos, copies results to `benchmark-results/gcp/`, and deletes the VM.
+
+See `benchmark-results/gcp/GCP-Benchmark.md` for full results and analysis.
+
+### GCP / CUDA Troubleshooting
+
+Five issues were encountered during GCP deployment and are documented here for future reference:
+
+1. **GCP Deep Learning VM image renamed** — The image family `common-cu121-ubuntu-2204` no longer exists. Use `common-cu128-ubuntu-2204-nvidia-570` instead (CUDA 12.8, driver 570.x).
+
+2. **Docker not pre-installed on new DL VM images** — The `common-cu128` image does not include Docker. The deployment script installs Docker CE and `nvidia-container-toolkit` automatically.
+
+3. **TornadoVM backend mismatch** — GPULlama3.java requires the OpenCL backend (`tornado.drivers.opencl` module). Using the PTX backend will fail. Also requires:
+   - `gcc-13` from `ubuntu-toolchain-r` PPA (for `GLIBCXX_3.4.32`)
+   - OpenCL ICD configured for NVIDIA: `/etc/OpenCL/vendors/nvidia.icd` containing `libnvidia-opencl.so.1`
+
+4. **NVIDIA driver/library version mismatch after apt-get** — Installing packages (e.g., `gcc-13`) can trigger an NVIDIA userspace library upgrade (e.g., 570.195 → 570.211) while the kernel module stays at the old version. Symptoms:
+   - `nvidia-smi` reports `Failed to initialize NVML: Driver/library version mismatch`
+   - CUDA programs fail with `CUDA_ERROR_UNKNOWN`
+   - OpenCL reports `clGetPlatformIDs -> Returned: -1001`
+   - `nvidia-persistenced` is dead
+
+   **Fix**: Reboot the VM (`sudo reboot`) to reload the kernel module matching the upgraded userspace libraries.
+
+5. **cmake cannot find CUDA compiler on bare metal** — cmake's CUDA language detection can fail on GCP VMs even when `nvcc` is installed. Fix by passing the compiler path explicitly:
+   ```bash
+   export PATH="/usr/local/cuda/bin:$PATH"
+   cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+   ```
