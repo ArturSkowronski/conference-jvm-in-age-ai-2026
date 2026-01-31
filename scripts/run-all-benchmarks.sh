@@ -137,6 +137,23 @@ else
   print_result "TornadoVM GPULlama3 (OpenCL)" "TornadoVM not installed" "fail"
 fi
 
+# --- Cyfra (Scala/Vulkan GPU) ---
+print_section "Cyfra - Scala/Vulkan GPU LLM (SPIR-V)"
+
+if command -v sbt &>/dev/null; then
+  echo -e "  Running Cyfra LLM..."
+  CYFRA_OUTPUT=$("$PROJECT_DIR/cyfra-demo/scripts/run-cyfra-llama.sh" --model "$MODEL_PATH" --prompt "Hello" --measure 2>&1)
+  # Extract "Average: X.X tok/s" or fall back to last "X.X tok/s" match
+  RESULT=$(echo "$CYFRA_OUTPUT" | grep "Average:" | grep -oE "[0-9]+\.[0-9]+" || echo "$CYFRA_OUTPUT" | grep -oE "([0-9]+\.?[0-9]*) tok/s" | tail -1 | grep -oE "[0-9]+\.[0-9]+" || echo "")
+  if [[ -n "$RESULT" ]]; then
+    print_result "Cyfra (Vulkan GPU)" "$RESULT tokens/s" "ok"
+  else
+    print_result "Cyfra (Vulkan GPU)" "Failed (check Vulkan drivers)" "fail"
+  fi
+else
+  print_result "Cyfra (Vulkan GPU)" "sbt not installed" "fail"
+fi
+
 # ============================================================================
 # DRY RUN DEMOS (Non-LLM)
 # ============================================================================
@@ -213,10 +230,11 @@ echo -e "${BOLD}LLM Performance Ranking:${NC}"
 echo ""
 printf "  %-5s %-40s %s\n" "Rank" "Approach" "Speed"
 printf "  %-5s %-40s %s\n" "────" "────────────────────────────────────────" "──────────────"
-printf "  ${GREEN}1${NC}     java-llama.cpp (JNI + Metal)           ~56 tokens/s\n"
-printf "  ${GREEN}2${NC}     Llama3.java (JDK 25)                    ~15 tokens/s\n"
-printf "  ${GREEN}3${NC}     TornadoVM GPULlama3 (OpenCL)            ~6 tokens/s\n"
-printf "  ${RED}4${NC}     Llama3.java (JDK 21)                    ~0.4 tokens/s\n"
+printf "  ${GREEN}1${NC}     java-llama.cpp (JNI + Metal/CUDA)       ~56 tokens/s\n"
+printf "  ${GREEN}2${NC}     Cyfra (Scala/Vulkan GPU)                ~31 tokens/s\n"
+printf "  ${GREEN}3${NC}     Llama3.java (JDK 25)                    ~15 tokens/s\n"
+printf "  ${GREEN}4${NC}     TornadoVM GPULlama3 (OpenCL)            ~8 tokens/s\n"
+printf "  ${RED}5${NC}     Llama3.java (JDK 21)                    ~0.4 tokens/s\n"
 echo ""
 
 echo -e "${BOLD}JDK Version Impact (Llama3.java):${NC}"
@@ -227,6 +245,6 @@ echo ""
 
 echo -e "${BOLD}Demo Status:${NC}"
 echo ""
-echo -e "  ${GREEN}Working:${NC} llama3-java, java-llama-cpp, GPULlama3, tensorflow-ffm, babylon, graalpy-java-host"
+echo -e "  ${GREEN}Working:${NC} llama3-java, java-llama-cpp, GPULlama3, cyfra, tensorflow-ffm, babylon, graalpy-java-host"
 echo -e "  ${RED}Failing:${NC} graalpy-llama (ctypes limitation)"
 echo ""

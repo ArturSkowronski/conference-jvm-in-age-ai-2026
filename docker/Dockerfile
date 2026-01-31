@@ -58,10 +58,19 @@ RUN rm -f /etc/apt/trusted.gpg.d/ubuntu-keyring-2012-cdimage.gpg && \
       maven \
       python3 python3-pip python3-venv \
       ocl-icd-libopencl1 opencl-headers clinfo \
+      libvulkan1 libvulkan-dev vulkan-tools mesa-vulkan-drivers \
     && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
     && apt-get update \
     && apt-get install -y --no-install-recommends gcc-13 g++-13 libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install sbt (for Cyfra — Scala/Vulkan GPU demo)
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" \
+      > /etc/apt/sources.list.d/sbt.list && \
+    curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" \
+      | gpg --dearmor -o /etc/apt/trusted.gpg.d/sbt.gpg && \
+    apt-get update && apt-get install -y --no-install-recommends sbt && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy JDKs and TornadoVM from builder
 COPY --from=builder /opt/jdk/graalvm-21  /opt/jdk/graalvm-21
@@ -92,7 +101,7 @@ WORKDIR /workspace
 COPY . /workspace/
 
 # Make scripts executable
-RUN chmod +x scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh docker/entrypoint.sh 2>/dev/null || true
+RUN chmod +x scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh cyfra-demo/scripts/*.sh docker/entrypoint.sh 2>/dev/null || true
 RUN chmod +x gradlew
 
 # Build java-llama.cpp native library with CUDA support
@@ -118,5 +127,12 @@ RUN if [ -d "$TORNADOVM_HOME" ]; then \
       cd tornadovm-demo/build/gpullama3-src && \
       ./mvnw -q -DskipTests package || true; \
     fi
+
+# Clone and pre-build Cyfra (Scala/Vulkan GPU)
+RUN git clone --depth 1 --branch llm.scala \
+      https://github.com/ComputeNode/cyfra.git \
+      cyfra-demo/build/cyfra-src && \
+    cd cyfra-demo/build/cyfra-src && \
+    SBT_OPTS="-Xmx4g" sbt compile || true
 
 ENTRYPOINT ["/workspace/docker/entrypoint.sh"]

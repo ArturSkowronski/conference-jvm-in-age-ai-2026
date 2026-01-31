@@ -157,7 +157,15 @@ echo '>>> Cloning project...'
 $CLONE_CMD
 
 echo '>>> Installing JDK and build tools for non-Docker benchmarks...'
-sudo apt-get install -y -qq software-properties-common cmake maven ocl-icd-libopencl1 clinfo
+sudo apt-get install -y -qq software-properties-common cmake maven ocl-icd-libopencl1 clinfo \
+  libvulkan1 libvulkan-dev vulkan-tools mesa-vulkan-drivers
+
+# Install sbt (for Cyfra)
+echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list >/dev/null
+curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" \
+  | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/sbt.gpg 2>/dev/null || true
+sudo apt-get update -qq
+sudo apt-get install -y -qq sbt
 sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 sudo apt-get update -qq
 sudo apt-get install -y -qq gcc-13 g++-13 libstdc++6
@@ -231,7 +239,7 @@ echo '============================================================'
 mkdir -p ~/results/bare-metal
 
 cd ~/benchmark
-chmod +x gradlew scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh 2>/dev/null || true
+chmod +x gradlew scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh cyfra-demo/scripts/*.sh 2>/dev/null || true
 
 # Llama3.java JDK 21
 echo '>>> [Bare] Llama3.java (JDK 21)...'
@@ -256,6 +264,10 @@ JAVA_HOME=\$JDK_21 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --ite
 # TornadoVM GPULlama3
 echo '>>> [Bare] TornadoVM GPULlama3...'
 JAVA_HOME=\$JDK_21 ./tornadovm-demo/scripts/run-gpullama3.sh --model \$MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3.log || true
+
+# Cyfra (Scala/Vulkan GPU)
+echo '>>> [Bare] Cyfra LLM (Scala/Vulkan)...'
+./cyfra-demo/scripts/run-cyfra-llama.sh --model \$MODEL_PATH --prompt 'Hello' --measure 2>&1 | tee ~/results/bare-metal/cyfra_llm.log || true
 
 echo ''
 echo '============================================================'

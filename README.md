@@ -3,6 +3,7 @@
 ## Demos
 
 - `tornadovm-demo/` – simple TornadoVM demo (baseline vs TaskGraph)
+- `cyfra-demo/` – Cyfra LLM inference (Scala 3 → Vulkan GPU via SPIR-V)
 - `demos/jcuda/` — JCuda support demo (CUDA driver + device info)
 - `demos/tensorflow-ffm/` — TensorFlow C API via FFM (no JNI / no Python)
 
@@ -71,6 +72,45 @@ If you install a GraalVM distribution, you can add Python with `gu` and use `gra
 ## TornadoVM (notes)
 
 TornadoVM requires a compatible JDK + its runtime; treat it as a separate SDKMAN "java" candidate and point `.sdkmanrc` at it when needed.
+
+## Cyfra (Scala/Vulkan GPU)
+
+Cyfra is a Scala 3 library that compiles GPU programs to SPIR-V and runs them on Vulkan. The `llm.scala` branch includes a full Llama inference implementation.
+
+Run:
+```bash
+./cyfra-demo/scripts/run-cyfra-llama.sh \
+  --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+  --prompt "Hello" --measure
+```
+
+Requirements:
+- **sbt** (Scala Build Tool): https://www.scala-sbt.org/download
+- **Vulkan drivers** (included with NVIDIA/AMD/Intel drivers on Linux/Windows)
+
+### macOS / MoltenVK Setup
+
+macOS requires MoltenVK (Vulkan-over-Metal translation layer). Two options:
+
+**Option 1: Install Vulkan SDK (recommended)**
+1. Download from https://vulkan.lunarg.com/sdk/home
+2. Set environment:
+   ```bash
+   export VULKAN_SDK="$HOME/VulkanSDK/<version>/macOS"
+   ```
+   The run script automatically configures LWJGL to use MoltenVK.
+
+**Option 2: Homebrew (may have issues)**
+```bash
+brew install molten-vk
+```
+
+**Known MoltenVK issues on macOS:**
+- **LWJGL can't find libvulkan** — If you see `Failed to create Vulkan instance`, ensure `VULKAN_SDK` is set and contains `lib/libvulkan.1.dylib`.
+- **MoltenVK version mismatch** — Some Homebrew versions may be incompatible with LWJGL. Prefer the official Vulkan SDK.
+- **Apple Silicon vs Intel** — Both architectures are supported, but ensure you download the correct SDK variant.
+
+Performance on Apple M1 Pro: ~30 tok/s (Llama-3.2-1B-Instruct-f16.gguf)
 
 ## Docker / GCP GPU Benchmarks
 

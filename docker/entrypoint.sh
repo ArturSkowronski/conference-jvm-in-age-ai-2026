@@ -212,6 +212,13 @@ run_benchmarks() {
       true 600
   fi
 
+  # Cyfra (Scala/Vulkan GPU)
+  if command -v sbt &>/dev/null; then
+    run_demo "Cyfra LLM" \
+      "$PROJECT_DIR/cyfra-demo/scripts/run-cyfra-llama.sh --model $MODEL_PATH --prompt 'Hello' --measure" \
+      true 600
+  fi
+
   # ── Non-LLM Demos ──
 
   # TensorFlow FFM
