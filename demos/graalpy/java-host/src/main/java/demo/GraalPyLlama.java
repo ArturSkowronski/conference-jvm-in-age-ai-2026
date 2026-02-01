@@ -12,8 +12,6 @@ import java.nio.file.Paths;
 
 public final class GraalPyLlama {
     public static void main(String[] args) {
-        // We are running in demos/graalpy/java-host
-        // Need to go up 3 levels to root: ../../../
         File currentDir = new File(System.getProperty("user.dir"));
         File projectRootDir = currentDir.getParentFile().getParentFile().getParentFile();
         
@@ -30,11 +28,6 @@ public final class GraalPyLlama {
         System.out.println("[GraalPy] Venv:   " + venvSitePackages);
         System.out.println("[GraalPy] ============================================================");
 
-        if (!new File(modelPath).exists()) {
-            System.err.println("[GraalPy] Error: Model file not found.");
-            System.exit(1);
-        }
-
         try (Context ctx = Context.newBuilder("python")
                 .allowIO(IOAccess.ALL) // Allow file access
                 .allowNativeAccess(true) // Allow C extensions (llama.cpp)
@@ -43,16 +36,12 @@ public final class GraalPyLlama {
 
             System.out.println("[GraalPy] Context initialized. Importing llama_inference...");
             
-            // Add the script directory to python path so we can import it
-            ctx.eval("python", "import sys; sys.path.append('" + Paths.get(projectRoot, "demos", "graalpy-llama").toString() + "')");
+            ctx.eval("python", "import sys; sys.path.append('" +
+                Paths.get(projectRoot, "demos", "graalpy-llama").toString() + "')");
             
-            // Import the module
             Value llamaModule = ctx.eval("python", "import llama_inference; llama_inference");
             
             System.out.println("[GraalPy] Module imported. Running inference...");
-            
-            // Call the run_inference function
-            // run_inference(model_path, prompt, max_tokens, temperature)
             Value runInference = llamaModule.getMember("run_inference");
             runInference.execute(modelPath, "Tell me a short joke about Java.", 64, 0.7);
 
