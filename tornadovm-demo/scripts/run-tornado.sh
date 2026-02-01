@@ -10,6 +10,8 @@ SRC_DIR="$ROOT_DIR/src/tornado/java"
 
 TORNADOVM_VERSION="${TORNADOVM_VERSION:-2.2.0}"
 TORNADOVM_BACKEND="${TORNADOVM_BACKEND:-opencl}"
+# Device selection for multi-backend builds: 0:0=OpenCL, 1:0=PTX/CUDA
+TORNADO_DEVICE="${TORNADO_DEVICE:-}"
 
 # Detect OS and architecture
 detect_platform() {
@@ -126,7 +128,13 @@ run() {
   tornado --devices 2>&1 | grep -E "(Driver:|device=|Global Memory)" || true
   echo ""
 
-  tornado --module-path "$BUILD_DIR/mods" \
+  local device_args=()
+  if [[ -n "$TORNADO_DEVICE" ]]; then
+    echo "Using device: $TORNADO_DEVICE"
+    device_args=(--device "$TORNADO_DEVICE")
+  fi
+
+  tornado ${device_args[@]+"${device_args[@]}"} --module-path "$BUILD_DIR/mods" \
     -m demo.tornadovm/demo.tornadovm.VectorAddTornado \
     --params "$*"
 }
