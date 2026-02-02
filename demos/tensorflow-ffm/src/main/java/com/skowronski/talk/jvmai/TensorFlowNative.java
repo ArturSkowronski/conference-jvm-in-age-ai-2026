@@ -1,4 +1,4 @@
-package conf.jvm.tensorflow;
+package com.skowronski.talk.jvmai;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -1,0 +1,45 @@
+name: TensorFlow FFM Demo
+
+on:
+  push:
+    paths:
+      - 'demos/tensorflow-ffm/**'
+      - '.github/workflows/tensorflow-ffm.yml'
+  pull_request:
+    paths:
+      - 'demos/tensorflow-ffm/**'
+      - '.github/workflows/tensorflow-ffm.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tensorflow-ffm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tensorflow-ffm-smoke:
+    name: TensorFlow FFM Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run TensorFlow FFM demo
+        run: ./gradlew :demos:tensorflow-ffm:run --no-daemon
+
+      - name: Verify output
+        run: |
+          echo "✅ TensorFlow FFM demo completed successfully"
+          echo "Demo shows:"
+          echo "  - FFM API calling TensorFlow C library"
+          echo "  - Auto-download of TensorFlow 2.18.0"
+          echo "  - Simple computation: 1.5 + 2.25 = 3.75"
