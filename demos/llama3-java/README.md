@@ -42,12 +42,6 @@ Because light attracts bugs!
 ```bash
 # Default - uses JDK 25
 ./gradlew :demos:llama3-java:run
-
-# Explicit JDK 25
-./gradlew :demos:llama3-java:runJDK25
-
-# Smoke test
-./gradlew :demos:llama3-java:runSmoke
 ```
 
 ### Comparison: JDK 21 (~0.3 tokens/sec)
@@ -74,12 +68,10 @@ Because light attracts bugs!
 ## All Available Tasks
 
 ```bash
-# Run with JDK 25 (best performance)
+# Run with JDK 25 (recommended)
 ./gradlew :demos:llama3-java:run
-./gradlew :demos:llama3-java:runJDK25
-./gradlew :demos:llama3-java:runSmoke
 
-# Run with JDK 21 (comparison - very slow)
+# Run with JDK 21 (comparison - 40x slower!)
 ./gradlew :demos:llama3-java:runJDK21
 
 # Custom prompt

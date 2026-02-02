@@ -32,21 +32,6 @@ application {
   )
 }
 
-// Run with JDK 25 (best Vector API performance - ~40x faster than JDK 21)
-tasks.register<JavaExec>("runJDK25") {
-  group = "application"
-  description = "Run with JDK 25 (best Vector API - ~13 tokens/sec)"
-
-  javaLauncher.set(javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(25))
-  })
-
-  classpath = sourceSets.main.get().runtimeClasspath
-  mainClass.set(application.mainClass)
-  jvmArgs(application.applicationDefaultJvmArgs)
-  args = listOf("--instruct", "-m", modelPath.get(), "-p", prompt.get(), "--max-tokens", "32")
-}
-
 // Run with JDK 21 (slow Vector API - ~0.3 tokens/sec, for comparison)
 tasks.register<JavaExec>("runJDK21") {
   group = "application"
@@ -62,18 +47,15 @@ tasks.register<JavaExec>("runJDK21") {
   args = listOf("--instruct", "-m", modelPath.get(), "-p", prompt.get(), "--max-tokens", "32")
 }
 
-// Smoke test - runs with JDK 25 (best performance)
-tasks.register<JavaExec>("runSmoke") {
-  group = "application"
-  description = "Run smoke test with JDK 25 (recommended)"
-  dependsOn("runJDK25")
-}
-
-// Default 'run' uses JDK 25
+// Default 'run' uses JDK 25 (best performance)
 tasks.named<JavaExec>("run") {
+  group = "application"
+  description = "Run with JDK 25 (best Vector API - ~13 tokens/sec)"
+
   javaLauncher.set(javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(25))
   })
+
   jvmArgs(application.applicationDefaultJvmArgs)
   args = listOf("--instruct", "-m", modelPath.get(), "-p", prompt.get(), "--max-tokens", "32")
 }
