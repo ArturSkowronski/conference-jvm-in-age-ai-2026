@@ -5,6 +5,7 @@ Demonstrates Project Babylon's Code Reflection capabilities for runtime code int
 ## Quick Start
 
 ```bash
+# Run both demos (RuntimeCheck + HatMatMul if HAT available)
 ./gradlew :demos:babylon:run
 ```
 
@@ -47,11 +48,12 @@ This is expected with standard JDK builds
 ## Running
 
 ```bash
-# Check runtime environment
+# Run both demos (RuntimeCheck + HatMatMul if available)
 ./gradlew :demos:babylon:run
 
-# Smoke test (same)
-./gradlew :demos:babylon:runSmoke
+# Run individual demos
+./gradlew :demos:babylon:runRuntimeCheck  # Code Reflection check
+./gradlew :demos:babylon:runHatMatMul     # HAT MatMul (if HAT available)
 ```
 
 ## Results

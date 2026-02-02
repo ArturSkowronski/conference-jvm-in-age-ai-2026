@@ -73,7 +73,26 @@ tasks.register<JavaExec>("runHatMatMul") {
   args = listOf("ffi-opencl", "matmul", "2DTILING")
 }
 
-// Default 'run' executes runtime check
-tasks.named<JavaExec>("run") {
-  jvmArgs(application.applicationDefaultJvmArgs)
+// Default 'run' executes both tasks
+tasks.named("run") {
+  group = "application"
+  description = "Run both RuntimeCheck and HatMatMul (if HAT available)"
+
+  dependsOn("runRuntimeCheck")
+  if (hasHat) {
+    dependsOn("runHatMatMul")
+  }
+
+  doFirst {
+    println("=".repeat(60))
+    println("Babylon Demo Suite:")
+    println("  1. RuntimeCheck - Code Reflection detection")
+    if (hasHat) {
+      println("  2. HatMatMul - GPU MatMul with HAT framework")
+    } else {
+      println("  2. HatMatMul - SKIPPED (HAT not found)")
+    }
+    println("=".repeat(60))
+    println()
+  }
 }
