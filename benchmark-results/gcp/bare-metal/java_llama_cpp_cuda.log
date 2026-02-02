@@ -1,13 +1,25 @@
+Downloading https://services.gradle.org/distributions/gradle-9.3.0-bin.zip
+.............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
 WARNING: A restricted method in java.lang.System has been called
 WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/askowronski/.gradle/wrapper/dists/gradle-9.3.0-bin/79n14ral3mx1ozqr3csh2u872/gradle-9.3.0/lib/native-platform-0.22-milestone-29.jar)
 WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
 WARNING: Restricted methods will be blocked in a future release unless native access is enabled
 
+
+Welcome to Gradle 9.3.0!
+
+Here are the highlights of this release:
+ - Test reporting improvements
+ - Error and warning improvements
+ - Build authoring improvements
+
+For more details see https://docs.gradle.org/9.3.0/release-notes.html
+
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
-> Task :demos:java-llama-cpp:compileJava UP-TO-DATE
+> Task :demos:java-llama-cpp:compileJava
 > Task :demos:java-llama-cpp:processResources NO-SOURCE
-> Task :demos:java-llama-cpp:classes UP-TO-DATE
+> Task :demos:java-llama-cpp:classes
 
 > Task :demos:java-llama-cpp:run
 [java-llama.cpp] ============================================================
@@ -184,7 +196,7 @@ Java_de_kherud_llama_LlamaModel_loadModel: chat template, chat_template: {{- bos
 
 {#- This block extracts the system message, so we can slot it into the right place. #}
 {%- if messages[0]['role'] == 'system' %}
-    {%- set system_message = messages[0]['content']|trim %}
+[java-llama.cpp] Model loaded in     {%- set system_message = messages[0]['content']|trim %}
     {%- set messages = messages[1:] %}
 {%- else %}
     {%- set system_message = "" %}
@@ -205,7 +217,7 @@ Java_de_kherud_llama_LlamaModel_loadModel: chat template, chat_template: {{- bos
         {{- t | tojson(indent=4) }}
         {{- "\n\n" }}
     {%- endfor %}
-[java-llama.cpp] Model loaded in {%- endif %}
+{%- endif %}
 {{- system_message }}
 {{- "<|eot_id|>" }}
 
@@ -269,7 +281,7 @@ How are you?<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 '
 srv  update_slots: all slots are idle
-3.91s
+2.87s
 
 [java-llama.cpp] Formatting prompt with Llama 3.2 chat template...
 [java-llama.cpp] Prompt: Tell me a short joke about programming.
@@ -285,25 +297,25 @@ slot update_slots: id  0 | task 0 | prompt processing progress, n_past = 30, n_t
 slot update_slots: id  0 | task 0 | prompt done, n_past = 30, n_tokens = 30
 Here's one:
 
-Why did the programmer quit his job?
+Why do programmers prefer dark mode?
 
-Because he didn't get arrays! (get it?)slot      release: id  0 | task 0 | stop processing: n_past = 53, truncated = 0
+Because light attracts bugs.slot      release: id  0 | task 0 | stop processing: n_past = 46, truncated = 0
 slot print_timing: id  0 | task 0 | 
-prompt eval time =      25.25 ms /    30 tokens (    0.84 ms per token,  1188.26 tokens per second)
-       eval time =     315.48 ms /    24 tokens (   13.15 ms per token,    76.07 tokens per second)
-      total time =     340.73 ms /    54 tokens
-
+prompt eval time =      26.63 ms /    30 tokens (    0.89 ms per token,  1126.59 tokens per second)
+       eval time =     259.70 ms /    17 tokens (   15.28 ms per token,    65.46 tokens per second)
+      total time =     286.33 ms /    47 tokens
 srv  update_slots: all slots are idle
+
 [java-llama.cpp] ----------------------------------------
 
 [java-llama.cpp] Stats:
-[java-llama.cpp]   Model load time: 3.91s
-[java-llama.cpp]   Inference time: 0.34s
-[java-llama.cpp]   Tokens generated: 25
-[java-llama.cpp]   Tokens/sec: 72.89
+[java-llama.cpp]   Model load time: 2.87s
+[java-llama.cpp]   Inference time: 0.29s
+[java-llama.cpp]   Tokens generated: 18
+[java-llama.cpp]   Tokens/sec: 62.28
 
 [java-llama.cpp] Demo completed successfully!
 
-BUILD SUCCESSFUL in 14s
-2 actionable tasks: 1 executed, 1 up-to-date
+BUILD SUCCESSFUL in 50s
+2 actionable tasks: 2 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.0/userguide/configuration_cache_enabling.html

@@ -11,5 +11,5 @@ Driver: [36mOpenCL[0m
 		Global Memory Size: 14.6 GB
 
 WARNING: Using incubator modules: jdk.incubator.vector
-TornadoVM: size=10000000, best=10.248 ms, throughput=10.91 GB/s
+TornadoVM: size=10000000, best=10.188 ms, throughput=10.97 GB/s
 Verify: OK

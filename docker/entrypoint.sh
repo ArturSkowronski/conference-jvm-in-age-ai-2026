@@ -212,11 +212,17 @@ run_benchmarks() {
       true 600
   fi
 
-  # Cyfra (Scala/Vulkan GPU)
-  if command -v sbt &>/dev/null; then
-    run_demo "Cyfra LLM" \
-      "$PROJECT_DIR/cyfra-demo/scripts/run-cyfra-llama.sh --model $MODEL_PATH --prompt 'Hello' --measure" \
-      true 600
+  # Cyfra (Scala/Vulkan GPU) - requires Vulkan with NVIDIA GPU
+  # Note: GCP VMs with NVIDIA Open Kernel Modules do NOT support Vulkan
+  if command -v sbt &>/dev/null && command -v vulkaninfo &>/dev/null; then
+    # Check if Vulkan sees a physical GPU (not just llvmpipe CPU)
+    if vulkaninfo --summary 2>&1 | grep -q "PHYSICAL_DEVICE_TYPE_DISCRETE_GPU\|PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU"; then
+      run_demo "Cyfra LLM" \
+        "$PROJECT_DIR/cyfra-demo/scripts/run-cyfra-llama.sh --model $MODEL_PATH --prompt 'Hello' --measure" \
+        true 600
+    else
+      echo -e "${YELLOW}[Cyfra LLM] SKIPPED - Vulkan GPU not available (GCP uses NVIDIA Open Kernel Modules which don't support Vulkan)${NC}"
+    fi
   fi
 
   # ── Non-LLM Demos ──

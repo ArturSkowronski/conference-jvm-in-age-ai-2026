@@ -93,6 +93,12 @@ ENV PATH="/opt/jdk/jdk-25/bin:${PATH}"
 RUN mkdir -p /etc/OpenCL/vendors && \
     echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
+# NVIDIA Vulkan ICD configuration (for Cyfra on systems with proprietary NVIDIA driver)
+# Note: This only works with proprietary NVIDIA drivers, NOT on GCP (which uses Open Kernel Modules)
+RUN mkdir -p /usr/share/vulkan/icd.d && \
+    echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libGLX_nvidia.so.0","api_version":"1.3"}}' \
+    > /usr/share/vulkan/icd.d/nvidia_icd.json
+
 # Model and results mount points
 RUN mkdir -p /models /results
 

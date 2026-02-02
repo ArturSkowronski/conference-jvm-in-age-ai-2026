@@ -144,7 +144,7 @@ See `benchmark-results/gcp/GCP-Benchmark.md` for full results and analysis.
 
 ### GCP / CUDA Troubleshooting
 
-Five issues were encountered during GCP deployment and are documented here for future reference:
+Six issues were encountered during GCP deployment and are documented here for future reference:
 
 1. **GCP Deep Learning VM image renamed** — The image family `common-cu121-ubuntu-2204` no longer exists. Use `common-cu128-ubuntu-2204-nvidia-570` instead (CUDA 12.8, driver 570.x).
 
@@ -167,3 +167,15 @@ Five issues were encountered during GCP deployment and are documented here for f
    export PATH="/usr/local/cuda/bin:$PATH"
    cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
    ```
+
+6. **Vulkan not working on GCP (NVIDIA Open Kernel Modules)** — GCP Deep Learning VMs use NVIDIA Open Kernel Modules (`nvidia-*-open`) by default, which do **not** support Vulkan. Symptom:
+   ```
+   ERROR: Could not get 'vkCreateInstance' via 'vk_icdGetInstanceProcAddr' for ICD libGLX_nvidia.so.0
+   ```
+   **Fix**: Install the proprietary NVIDIA driver which includes Vulkan support:
+   ```bash
+   sudo apt-get install -y nvidia-driver-570-server
+   # Verify Vulkan sees the GPU
+   vulkaninfo --summary | grep deviceName  # Should show "Tesla T4"
+   ```
+   The deployment script (`docker/run-on-gcp.sh`) installs the proprietary driver automatically

@@ -47,6 +47,13 @@ fi
 # See: https://tornadovm.readthedocs.io/en/latest/faq.html
 export JVMCI_CONFIG_CHECK="${JVMCI_CONFIG_CHECK:-ignore}"
 
+# Device selection for multi-backend builds: 0:0=OpenCL, 1:0=PTX/CUDA
+# Passed via JAVA_OPTS to the llama-tornado launcher
+if [[ -n "${TORNADO_DEVICE:-}" ]]; then
+  export JAVA_OPTS="${JAVA_OPTS:-} -Dtornado.device=$TORNADO_DEVICE"
+  echo "Using TornadoVM device: $TORNADO_DEVICE"
+fi
+
 if [[ ! -x "$JAVA_HOME/bin/java" ]]; then
   echo "JAVA_HOME does not look like a JDK: $JAVA_HOME" >&2
   exit 2

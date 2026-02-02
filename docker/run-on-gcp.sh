@@ -101,7 +101,7 @@ for i in $(seq 1 20); do
   sleep 15
 done
 
-# ── Step 2: Setup and run on VM ────────────────────────────────────────────
+# ── Step 2: Upload and run benchmark script on VM ─────────────────────────
 echo ""
 echo ">>> Setting up benchmark on VM..."
 
@@ -120,45 +120,46 @@ else
   fi
 fi
 
-gcloud compute ssh "$VM_NAME" --zone="$ZONE" --project="$GCP_PROJECT" --command="$(cat <<REMOTE_SCRIPT
+# Create the benchmark script locally
+BENCHMARK_SCRIPT=$(mktemp)
+cat > "$BENCHMARK_SCRIPT" <<'REMOTE_SCRIPT'
+#!/bin/bash
 set -euo pipefail
+
+# Mark script as running
+touch ~/benchmark_running
+trap 'rm -f ~/benchmark_running' EXIT
+
+exec > >(tee ~/benchmark.log) 2>&1
 
 echo '>>> Verifying GPU...'
 nvidia-smi || { echo 'GPU not ready yet'; exit 1; }
 
-echo '>>> Installing Docker...'
-if ! command -v docker &>/dev/null; then
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq apt-transport-https ca-certificates curl gnupg lsb-release
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-    | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg 2>/dev/null || true
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" \
-    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq docker-ce docker-ce-cli containerd.io
-  sudo systemctl start docker
-  sudo systemctl enable docker
-fi
-
-echo '>>> Installing nvidia-container-toolkit...'
-if ! command -v nvidia-ctk &>/dev/null; then
-  curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
-    | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg 2>/dev/null || true
-  curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
-    | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
-    | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list >/dev/null
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq nvidia-container-toolkit
-  sudo nvidia-ctk runtime configure --runtime=docker
-  sudo systemctl restart docker
-fi
-
 echo '>>> Cloning project...'
-$CLONE_CMD
+REMOTE_SCRIPT
+
+# Append the clone command (needs variable expansion)
+echo "$CLONE_CMD" >> "$BENCHMARK_SCRIPT"
+
+cat >> "$BENCHMARK_SCRIPT" <<'REMOTE_SCRIPT'
 
 echo '>>> Installing JDK and build tools for non-Docker benchmarks...'
-sudo apt-get install -y -qq software-properties-common cmake maven ocl-icd-libopencl1 clinfo \
-  libvulkan1 libvulkan-dev vulkan-tools mesa-vulkan-drivers
+sudo apt-get update -qq
+sudo apt-get install -y -qq software-properties-common cmake maven \
+  ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo \
+  libvulkan1 libvulkan-dev vulkan-tools
+
+# Install proprietary NVIDIA driver for Vulkan support (GCP uses open kernel modules by default)
+echo '>>> Installing proprietary NVIDIA driver for Vulkan support...'
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nvidia-driver-570-server 2>&1 | tail -5
+
+# Verify Vulkan sees the NVIDIA GPU
+echo '>>> Verifying Vulkan GPU detection...'
+if vulkaninfo --summary 2>&1 | grep -q "PHYSICAL_DEVICE_TYPE_DISCRETE_GPU"; then
+  echo '>>> SUCCESS: Vulkan sees Tesla T4 GPU - Cyfra will work!'
+else
+  echo '>>> WARNING: Vulkan GPU not detected - may need reboot'
+fi
 
 # Install sbt (for Cyfra)
 echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list >/dev/null
@@ -168,7 +169,8 @@ sudo apt-get update -qq
 sudo apt-get install -y -qq sbt
 sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 sudo apt-get update -qq
-sudo apt-get install -y -qq gcc-13 g++-13 libstdc++6
+sudo apt-get install -y -qq gcc-13 g++-13 libstdc++6 python3-pip
+pip3 install --user rich
 
 # Download JDK 25 and GraalVM 21
 mkdir -p ~/jdks
@@ -185,16 +187,21 @@ fi
 
 export JAVA_HOME=~/jdks/jdk-25
 export JDK_21=~/jdks/graalvm-21
-export PATH="\$JAVA_HOME/bin:\$PATH"
+export PATH="$JAVA_HOME/bin:$PATH"
 
-# Download TornadoVM OpenCL SDK
-if [ ! -d ~/tornadovm ]; then
-  curl -fL -o /tmp/tornadovm.tar.gz "https://github.com/beehive-lab/TornadoVM/releases/download/v2.2.0/tornadovm-2.2.0-opencl-linux-amd64.tar.gz"
-  mkdir -p ~/tornadovm && tar -xzf /tmp/tornadovm.tar.gz -C ~/tornadovm
-  rm /tmp/tornadovm.tar.gz
+# Build TornadoVM from source with OpenCL + PTX backends
+if [ ! -d ~/tornadovm-src ]; then
+  echo '>>> Building TornadoVM with OpenCL + PTX backends (this takes a while)...'
+  git clone --depth 1 https://github.com/beehive-lab/TornadoVM.git ~/tornadovm-src
+  cd ~/tornadovm-src
+  export JAVA_HOME=$JDK_21
+  # Build with both OpenCL and PTX backends
+  # Pipe 'y' to auto-download cmake if needed
+  yes y | ./bin/tornadovm-installer --jdk jdk21 --backend opencl,ptx
+  cd ~/benchmark
 fi
-export TORNADOVM_HOME=~/tornadovm/tornadovm-2.2.0-opencl
-export TORNADOVM_BACKEND=opencl
+# TornadoVM installer creates output in dist/ with version/backend in path
+export TORNADOVM_HOME=~/tornadovm-src/dist/tornadovm-2.2.1-dev-opencl-ptx-linux-amd64/tornadovm-2.2.1-dev-opencl-ptx
 export JVMCI_CONFIG_CHECK=ignore
 
 # Set up OpenCL ICD for NVIDIA
@@ -205,13 +212,13 @@ echo "libnvidia-opencl.so.1" | sudo tee /etc/OpenCL/vendors/nvidia.icd >/dev/nul
 echo '>>> Building java-llama.cpp with CUDA support...'
 if [ ! -f ~/jllama-cuda/libjllama.so ]; then
   # Ensure CUDA compiler is on PATH for cmake detection
-  export PATH="/usr/local/cuda/bin:\$PATH"
+  export PATH="/usr/local/cuda/bin:$PATH"
   export CUDACXX=/usr/local/cuda/bin/nvcc
   git clone --depth 1 https://github.com/kherud/java-llama.cpp.git /tmp/java-llama-cpp
   cd /tmp/java-llama-cpp
   mvn compile -q
   cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
-  cmake --build build --config Release -j\$(nproc)
+  cmake --build build --config Release -j$(nproc)
   mkdir -p ~/jllama-cuda
   find /tmp/java-llama-cpp -name "libjllama.so" -exec cp {} ~/jllama-cuda/ \;
   cd ~/benchmark
@@ -243,7 +250,7 @@ chmod +x gradlew scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh c
 
 # Llama3.java JDK 21
 echo '>>> [Bare] Llama3.java (JDK 21)...'
-JAVA_HOME=\$JDK_21 ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32 2>&1 | tee ~/results/bare-metal/llama3java_jdk21.log || true
+JAVA_HOME=$JDK_21 ./demos/llama3-java/scripts/run-llama3.sh --max-tokens 32 2>&1 | tee ~/results/bare-metal/llama3java_jdk21.log || true
 
 # Llama3.java JDK 25
 echo '>>> [Bare] Llama3.java (JDK 25)...'
@@ -257,61 +264,83 @@ echo '>>> [Bare] java-llama.cpp (CUDA)...'
 echo '>>> [Bare] JCuda...'
 ./gradlew :demos:jcuda:run --no-daemon --console=plain 2>&1 | tee ~/results/bare-metal/jcuda.log || true
 
-# TornadoVM VectorAdd
-echo '>>> [Bare] TornadoVM VectorAdd...'
-JAVA_HOME=\$JDK_21 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd.log || true
+# TornadoVM VectorAdd (OpenCL) - device 0:0 = first backend (OpenCL)
+echo '>>> [Bare] TornadoVM VectorAdd (OpenCL)...'
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=0:0 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd_opencl.log || true
 
-# TornadoVM GPULlama3
-echo '>>> [Bare] TornadoVM GPULlama3...'
-JAVA_HOME=\$JDK_21 ./tornadovm-demo/scripts/run-gpullama3.sh --model \$MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3.log || true
+# TornadoVM VectorAdd (PTX/CUDA) - device 1:0 = second backend (PTX)
+echo '>>> [Bare] TornadoVM VectorAdd (PTX/CUDA)...'
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=1:0 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd_ptx.log || true
 
-# Cyfra (Scala/Vulkan GPU)
+# TornadoVM GPULlama3 (OpenCL) - device 0:0 = first backend (OpenCL)
+echo '>>> [Bare] TornadoVM GPULlama3 (OpenCL)...'
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=0:0 ./tornadovm-demo/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3_opencl.log || true
+
+# TornadoVM GPULlama3 (PTX/CUDA) - device 1:0 = second backend (PTX)
+echo '>>> [Bare] TornadoVM GPULlama3 (PTX/CUDA)...'
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=1:0 ./tornadovm-demo/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3_ptx.log || true
+
+# Cyfra (Scala/Vulkan GPU) - requires proprietary NVIDIA driver for Vulkan
 echo '>>> [Bare] Cyfra LLM (Scala/Vulkan)...'
-./cyfra-demo/scripts/run-cyfra-llama.sh --model \$MODEL_PATH --prompt 'Hello' --measure 2>&1 | tee ~/results/bare-metal/cyfra_llm.log || true
+./cyfra-demo/scripts/run-cyfra-llama.sh --model $MODEL_PATH --prompt 'Hello' --measure 2>&1 | tee ~/results/bare-metal/cyfra_llm.log || true
 
 echo ''
 echo '============================================================'
-echo '  NON-DOCKER BENCHMARKS COMPLETE'
+echo '  ALL BARE-METAL BENCHMARKS COMPLETE'
 echo '============================================================'
-
-# ── Run Docker benchmarks ──
-echo ''
-echo '============================================================'
-echo '  DOCKER BENCHMARKS'
-echo '============================================================'
-
-echo '>>> Building Docker image (this will take a while on first run)...'
-sudo docker build -t jvm-ai-benchmark -f docker/Dockerfile .
-
-echo '>>> Running Docker benchmarks...'
-mkdir -p ~/results/docker
-sudo docker run --rm --gpus all \
-  -v ~/models:/models \
-  -v ~/results/docker:/results \
-  jvm-ai-benchmark
-
 echo '>>> All benchmarks complete!'
 REMOTE_SCRIPT
-)"
+
+# Upload the script to the VM
+echo ">>> Uploading benchmark script to VM..."
+gcloud compute scp "$BENCHMARK_SCRIPT" "$VM_NAME":~/run_benchmarks.sh \
+  --zone="$ZONE" --project="$GCP_PROJECT"
+rm "$BENCHMARK_SCRIPT"
+
+# Start the benchmark script in the background using nohup
+echo ">>> Starting benchmarks in background on VM..."
+gcloud compute ssh "$VM_NAME" --zone="$ZONE" --project="$GCP_PROJECT" \
+  --command="chmod +x ~/run_benchmarks.sh && nohup ~/run_benchmarks.sh &"
+
+# Poll for completion
+echo ""
+echo ">>> Waiting for benchmarks to complete (checking every 60s)..."
+echo "    You can monitor progress with: gcloud compute ssh $VM_NAME --zone=$ZONE --command='tail -f ~/benchmark.log'"
+echo ""
+
+while true; do
+  # Check if script is still running
+  if gcloud compute ssh "$VM_NAME" --zone="$ZONE" --project="$GCP_PROJECT" \
+       --command="test -f ~/benchmark_running" 2>/dev/null; then
+    # Show last few lines of progress
+    LAST_LINE=$(gcloud compute ssh "$VM_NAME" --zone="$ZONE" --project="$GCP_PROJECT" \
+      --command="tail -1 ~/benchmark.log 2>/dev/null || echo 'Starting...'" 2>/dev/null || echo "...")
+    echo "  [$(date +%H:%M:%S)] Running... Last: $LAST_LINE"
+    sleep 60
+  else
+    echo "  [$(date +%H:%M:%S)] Benchmarks complete!"
+    break
+  fi
+done
+
+# Show final log output
+echo ""
+echo ">>> Final benchmark log:"
+gcloud compute ssh "$VM_NAME" --zone="$ZONE" --project="$GCP_PROJECT" \
+  --command="tail -50 ~/benchmark.log" 2>/dev/null || true
 
 # ── Step 3: Fetch results ──────────────────────────────────────────────────
 echo ""
 echo ">>> Downloading results..."
 
-mkdir -p "$PROJECT_DIR/benchmark-results/gcp/bare-metal" "$PROJECT_DIR/benchmark-results/gcp/docker"
+mkdir -p "$PROJECT_DIR/benchmark-results/gcp/bare-metal"
 gcloud compute scp --recurse --zone="$ZONE" --project="$GCP_PROJECT" \
   "$VM_NAME":~/results/bare-metal/* \
   "$PROJECT_DIR/benchmark-results/gcp/bare-metal/" 2>/dev/null || true
-gcloud compute scp --recurse --zone="$ZONE" --project="$GCP_PROJECT" \
-  "$VM_NAME":~/results/docker/* \
-  "$PROJECT_DIR/benchmark-results/gcp/docker/" 2>/dev/null || true
 
 echo ""
-echo ">>> Results saved to: benchmark-results/gcp/"
-echo "--- Bare metal results ---"
+echo ">>> Results saved to: benchmark-results/gcp/bare-metal/"
 ls -la "$PROJECT_DIR/benchmark-results/gcp/bare-metal/" 2>/dev/null || echo "  (none)"
-echo "--- Docker results ---"
-ls -la "$PROJECT_DIR/benchmark-results/gcp/docker/" 2>/dev/null || echo "  (none)"
 
 # ── Step 4: Optionally delete VM ───────────────────────────────────────────
 if [[ "$DELETE_AFTER" == "true" ]]; then

@@ -5,9 +5,13 @@ WARNING: Restricted methods will be blocked in a future release unless native ac
 
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Daemon will be stopped at the end of the build 
-> Task :demos:jcuda:compileJava UP-TO-DATE
+
+> Task :demos:jcuda:compileJava
+Note: /home/askowronski/benchmark/demos/jcuda/src/main/java/conf/jvm/jcuda/JCudaInfoDemo.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
 > Task :demos:jcuda:processResources NO-SOURCE
-> Task :demos:jcuda:classes UP-TO-DATE
+> Task :demos:jcuda:classes
 
 > Task :demos:jcuda:run
 [JCuda] ============================================================
@@ -26,7 +30,7 @@ WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers i
 WARNING: Restricted methods will be blocked in a future release unless native access is enabled
 
 [JCuda] Initializing CUDA driver (cuInit)...
-[JCuda] CUDA driver initialized in 1411ms
+[JCuda] CUDA driver initialized in 113ms
 [JCuda] Getting driver version...
 [JCuda] cuda.driverVersion=12080
 [JCuda] Counting CUDA devices...
@@ -37,6 +41,8 @@ WARNING: Restricted methods will be blocked in a future release unless native ac
 
 [JCuda] Demo completed successfully!
 
-BUILD SUCCESSFUL in 9s
-2 actionable tasks: 1 executed, 1 up-to-date
+[Incubating] Problems report is available at: file:///home/askowronski/benchmark/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 11s
+2 actionable tasks: 2 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.0/userguide/configuration_cache_enabling.html
