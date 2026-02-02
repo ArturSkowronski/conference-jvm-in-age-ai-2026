@@ -209,7 +209,7 @@ print_header "Known Failing Demos"
 print_section "GraalPy Llama - Python LLM (llama-cpp-python)"
 
 echo -e "  Running GraalPy Llama (expected to fail)..."
-OUTPUT=$(cd demos/cpython-llama && ./scripts/run-llama.sh --max-tokens 32 2>&1 || true)
+OUTPUT=$(cd demos/graalpy && ./scripts/run-llama.sh --max-tokens 32 2>&1 || true)
 if echo "$OUTPUT" | grep -q "ctypes"; then
   ERROR=$(echo "$OUTPUT" | grep "SystemError" | head -1)
   print_result "GraalPy Llama" "ctypes struct return not supported" "fail"
@@ -246,5 +246,5 @@ echo ""
 echo -e "${BOLD}Demo Status:${NC}"
 echo ""
 echo -e "  ${GREEN}Working:${NC} llama3-java, java-llama-cpp, GPULlama3, cyfra, tensorflow-ffm, babylon, graalpy"
-echo -e "  ${RED}Failing:${NC} cpython-llama (ctypes limitation)"
+echo -e "  ${RED}Failing:${NC} graalpy (CPython mode) (ctypes limitation)"
 echo ""

@@ -1,123 +1,41 @@
-# GraalPy Demo - Embedding Python in Java
+# GraalPy Demo - Python on the JVM
 
-This demo shows how to embed **GraalPy** (Python on GraalVM) into a Java application using the **GraalVM Polyglot API**.
+This demo explores **three different approaches** to running Python code on/with the JVM, demonstrating both successes and fundamental limitations.
 
-## What This Demo Shows
+## What This Demo Contains
 
-Two Java programs demonstrate different aspects of GraalPy integration:
+Three runnable programs showing different Python integration strategies:
 
-1. **`GraalPyFromJava`** - Basic GraalPy embedding
-   - Creates a Python context from Java
-   - Evaluates Python expressions
-   - Accesses Python values from Java
-   - ✅ **Works perfectly**
-
-2. **`GraalPyLlama`** - Python LLM inference attempt
-   - Attempts to run `llama-cpp-python` from Java
-   - Shows how to configure native access and venv paths
-   - ❌ **Fails due to GraalPy ctypes limitations** (see Known Issues)
-
-## Requirements
-
-**Option 1: GraalVM with GraalPy (legacy approach)**
-```bash
-# Install GraalVM CE 21
-sdk install java 21.0.2-graalce
-sdk use java 21.0.2-graalce
-
-# Install GraalPy component
-gu install graalpy
-
-# Verify
-graalpy --version
-```
-
-**Option 2: Any JDK + GraalPy Maven Dependency (modern approach - used by this demo)**
-```bash
-# Any JDK 21+ works (Temurin, GraalVM, etc.)
-sdk install java 21.0.5-tem
-
-# GraalPy runtime is automatically downloaded as a Gradle dependency
-./gradlew :demos:graalpy:dependencies --configuration runtimeClasspath
-```
-
-This demo uses **Option 2** - the Maven dependencies approach, which means:
-- ✅ Works with **any JDK 21+** (not just GraalVM)
-- ✅ No `gu install` needed
-- ✅ GraalPy runtime downloaded automatically via Gradle
-
-## How It Works
-
-### Dependencies
-
-The magic happens in `build.gradle.kts`:
-
-```kotlin
-dependencies {
-  // GraalVM SDK for compile-time API
-  compileOnly("org.graalvm.sdk:graal-sdk:25.0.1")
-
-  // GraalPy runtime - brings the full Python interpreter
-  runtimeOnly("org.graalvm.polyglot:python:25.0.1") {
-    exclude(group = "org.graalvm.truffle", module = "truffle-runtime")
-    exclude(group = "org.graalvm.truffle", module = "truffle-compiler")
-  }
-}
-```
-
-**Why this works:**
-- `graal-sdk` provides the Polyglot API (`Context`, `Value`, etc.)
-- `python:25.0.1` provides the full GraalPy interpreter as a Maven artifact
-- Excludes Truffle runtime/compiler to avoid conflicts (they're in the JDK)
-
-### GraalPyFromJava - Basic Example
-
-```java
-try (Context ctx = Context.newBuilder("python").build()) {
-  // Evaluate Python code
-  Value result = ctx.eval("python", "1.5 + 2.25");
-  System.out.println("Result: " + result.asDouble()); // 3.75
-
-  // Access Python version
-  Value version = ctx.eval("python", "import sys; sys.version");
-  System.out.println(version.asString());
-}
-```
-
-**Key insights:**
-- Context creation takes ~500-800ms (GraalPy initialization)
-- Subsequent evals are fast
+### 1. GraalPy Basic Embedding (✅ Works)
+**`GraalPyFromJava.java`** - Java embedding GraalPy via Polyglot API
+- Creates a Python context from Java
+- Evaluates Python expressions
 - Seamless Java ↔ Python value conversion
-- Automatic resource cleanup with try-with-resources
+- **Status**: ✅ Works perfectly
 
-### GraalPyLlama - Advanced (but failing) Example
+### 2. CPython with llama-cpp-python (✅ Works)
+**`llama_inference.py`** - Standard Python LLM inference
+- Uses standard CPython (not GraalPy)
+- Runs llama-cpp-python for LLM inference
+- Shows what works with full ctypes support
+- **Status**: ✅ Works perfectly (~10 tokens/sec)
 
-Demonstrates advanced Polyglot API features:
+### 3. GraalPy LLM Attempt (❌ Fails - Educational)
+**`GraalPyLlama.java`** - Java → GraalPy → llama-cpp-python
+- Attempts to run llama-cpp-python from Java via GraalPy
+- Demonstrates GraalPy's ctypes struct limitation
+- Shows advanced Polyglot API configuration
+- **Status**: ❌ Fails (demonstrates fundamental limitation)
 
-```java
-Context ctx = Context.newBuilder("python")
-  .allowIO(IOAccess.ALL)          // Allow file system access
-  .allowNativeAccess(true)        // Allow C extensions
-  .option("python.PythonPath", venvPath) // Add virtualenv to path
-  .build();
-```
+## Quick Start
 
-**What it tries to do:**
-1. Configure Python path to use `graalpy-llama/.venv`
-2. Import `llama_inference.py` module
-3. Call `run_inference()` to run LLM inference via `llama-cpp-python`
-
-**Why it fails:** See Known Issues below.
-
-## Running the Demos
-
-### Basic Demo (works)
+### Option 1: Basic GraalPy Embedding (recommended)
 
 ```bash
 # From project root
 ./gradlew :demos:graalpy:run
 
-# Or with SDKMAN environment
+# Or with SDKMAN
 cd demos/graalpy
 sdk env install && sdk env
 ../../gradlew :demos:graalpy:run
@@ -127,44 +45,114 @@ sdk env install && sdk env
 ```
 [GraalPy] GraalPy Java Host Demo
 [GraalPy] Context created in 650ms
-[GraalPy] python.version=3.12.8 (GraalVM CE)
+[GraalPy] python.version=3.12.8
 [GraalPy] Result: 1.5 + 2.25 = 3.75
-[GraalPy] Demo completed successfully
+✅ Demo completed successfully
 ```
 
-### LLM Inference Demo (fails - demonstrates limitation)
+### Option 2: CPython LLM Inference
 
-This attempts to run Python LLM inference from Java using llama-cpp-python.
+```bash
+# Setup venv (first time only)
+cd demos/graalpy
+python3 -m venv .venv
+source .venv/bin/activate
+pip install llama-cpp-python
 
-**Prerequisites:**
-1. Set up the CPython demo first:
-   ```bash
-   cd demos/cpython-llama
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install llama-cpp-python
-   ```
+# Run with Gradle
+./gradlew :demos:graalpy:runCPython
 
-2. Run the failing demo:
-   ```bash
-   ./gradlew :demos:graalpy:runLlama
-   ```
+# Or run Python directly
+python3 llama_inference.py --prompt "tell me a joke" --max-tokens 32
+```
+
+**Expected output:**
+```
+Model loaded in 23.2s
+Generating response...
+A programmer's wife asks: "Could you go to the store and get a gallon of milk?"
+He never returned.
+✅ Generated 23 tokens in 2.3s (~10 tokens/sec)
+```
+
+### Option 3: GraalPy LLM (demonstrates failure)
+
+```bash
+# Setup CPython venv first (see Option 2)
+
+# Run the failing GraalPy demo
+./gradlew :demos:graalpy:runLlama
+```
 
 **Expected output:**
 ```
 [GraalPy] Polyglot Exception: SystemError:
   Unsupported return type struct LLamaTokenData in ctypes callback
+❌ This intentionally fails to demonstrate GraalPy limitations
 ```
 
-**Note:** This demo intentionally fails to demonstrate GraalPy's ctypes limitations. The same `llama_inference.py` script works perfectly with CPython - see `demos/cpython-llama/`.
+## Requirements
 
-See **Known Issues** for why this fails.
+**For Basic Demo (GraalPyFromJava):**
+- Any JDK 21+ (Temurin, GraalVM, etc.)
+- GraalPy runtime (auto-downloaded via Gradle dependency)
 
-## Known Issues
+**For CPython Demo:**
+- Python 3.10+ (standard CPython)
+- llama-cpp-python (`pip install llama-cpp-python`)
+- Model file: `~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf`
 
-### ❌ GraalPy Cannot Run llama-cpp-python
+**For GraalPy LLM Demo:**
+- Same as CPython demo (to show it fails with GraalPy)
 
-**Problem:** GraalPy's Truffle NFI (Native Function Interface) **does not support struct return types** in ctypes callbacks.
+## How It Works
+
+### Modern Dependency Approach
+
+This demo uses **Maven dependencies** instead of `gu install graalpy`:
+
+```kotlin
+dependencies {
+  // GraalVM SDK for compile-time API
+  compileOnly("org.graalvm.sdk:graal-sdk:25.0.1")
+
+  // GraalPy runtime - full Python interpreter as a Maven artifact
+  runtimeOnly("org.graalvm.polyglot:python:25.0.1")
+}
+```
+
+**Benefits:**
+- ✅ Works with **any JDK 21+** (not just GraalVM)
+- ✅ No `gu install` needed
+- ✅ Reproducible builds (version locked)
+- ✅ Works in CI/CD without special setup
+
+### GraalPy Basic Embedding
+
+```java
+try (Context ctx = Context.newBuilder("python").build()) {
+  Value result = ctx.eval("python", "1.5 + 2.25");
+  System.out.println(result.asDouble()); // 3.75
+}
+```
+
+**Performance:**
+- Context creation: ~500-800ms (one-time cost)
+- Expression evaluation: <10ms
+- Total demo runtime: ~800ms
+
+### CPython vs GraalPy for LLM Inference
+
+**Same Python code (`llama_inference.py`), different interpreters:**
+
+| Interpreter | Command | Result |
+|-------------|---------|--------|
+| **CPython** | `./gradlew :demos:graalpy:runCPython` | ✅ Works (~10 tok/s) |
+| **GraalPy** | `./gradlew :demos:graalpy:runLlama` | ❌ Fails (ctypes limitation) |
+
+## The ctypes Struct Limitation
+
+### Why GraalPy Fails
 
 **Error:**
 ```
@@ -172,84 +160,136 @@ SystemError: Unsupported return type struct LLamaTokenData in ctypes callback
 ```
 
 **Root cause:**
-- `llama-cpp-python` uses ctypes to call llama.cpp C library
-- llama.cpp uses callbacks that return C structs
-- GraalPy's ctypes implementation doesn't support this (CPython does)
+- llama-cpp-python uses ctypes to call llama.cpp C functions
+- Some functions return C structs by value
+- GraalPy's Truffle NFI **does not support struct return types**
+- CPython's ctypes **does support** this
 
-**Workaround:** None. This is a fundamental limitation of GraalPy's ctypes.
-
-**Alternative:** Use `java-llama.cpp` (JNI bindings) instead - see `demos/java-llama-cpp/`
-
-### Why This Matters
-
-This demonstrates an important limitation when choosing GraalPy:
-- ✅ Pure Python code works great
+**What this means:**
+- ✅ Pure Python code works on GraalPy
 - ✅ Most C extensions work (NumPy, etc.)
-- ❌ **C extensions with complex ctypes callbacks may fail**
+- ❌ **C extensions with struct callbacks fail**
 
-If you need `llama-cpp-python`, use CPython or PyPy, not GraalPy.
+This is not a bug - it's an architectural limitation of GraalPy's native interface.
 
-## Performance Insights
+## Performance Comparison
 
-**Context Creation:** ~500-800ms
-- GraalPy needs to initialize the Truffle interpreter
-- This is a one-time cost per application
-- Much slower than CPython (~50ms)
+**Context Creation:**
+- GraalPy: ~600ms (Truffle initialization)
+- CPython: ~50ms
 
-**Execution Speed:**
-- Pure Python: comparable to CPython
-- With Graal JIT warmup: can be faster than CPython
-- Peak performance after ~10-20 iterations
+**LLM Inference (Llama 3.2 1B, 32 tokens):**
+- CPython (this demo): ~10 tokens/sec (CPU)
+- java-llama.cpp: ~50 tokens/sec (Metal GPU)
+- Llama3.java (JDK 25): ~13 tokens/sec (Vector API CPU)
 
-**Memory:**
-- Higher baseline memory than CPython (~200MB vs ~20MB)
-- Better for long-running applications with JIT optimization
+## When to Use Each Approach
 
-## When to Use GraalPy
-
-### ✅ Good Use Cases
+### ✅ Use GraalPy (GraalPyFromJava) For:
 - **Polyglot applications** - seamless Java ↔ Python interop
-- **Embedding Python in Java apps** - configuration, scripting, plugins
-- **Sandboxed Python execution** - security boundaries
+- **Embedding Python** - configuration, scripting, plugins
+- **Sandboxed execution** - security boundaries
 - **Pure Python algorithms** - benefit from Graal JIT
+- **Long-running apps** - amortize startup cost
 
-### ❌ Not Recommended For
-- **Quick scripts** - startup time too high
-- **Complex C extensions** - ctypes limitations
-- **Existing Python codebases** - compatibility issues
+### ✅ Use CPython (runCPython) For:
+- **Standard Python libraries** - full compatibility
+- **Quick scripts** - fast startup
+- **Complex C extensions** - full ctypes support
+- **LLM inference** - llama-cpp-python works
+
+### ❌ Don't Use GraalPy For:
+- **Complex C extensions** - ctypes struct limitation
+- **Quick one-off scripts** - startup too slow
 - **LLM inference** - use java-llama.cpp instead
 
-## Technical Details
+## All Available Tasks
 
-**Package:** `com.skowronski.talk.jvmai`
+```bash
+# Basic GraalPy embedding (works)
+./gradlew :demos:graalpy:run
 
-**Classes:**
-- `GraalPyFromJava` - Basic Polyglot API demo
-- `GraalPyLlama` - Advanced (failing) LLM inference attempt
+# CPython LLM inference (works)
+./gradlew :demos:graalpy:runCPython
 
-**Dependencies:**
-- GraalVM SDK 25.0.1 (compile-time)
-- GraalPy Polyglot 25.0.1 (runtime)
-- Works with any JDK 21+ (not just GraalVM)
+# GraalPy LLM attempt (fails - educational)
+./gradlew :demos:graalpy:runLlama
 
-## Comparison with Alternatives
+# List all tasks
+./gradlew :demos:graalpy:tasks
+```
 
-| Approach | Startup | Performance | Compatibility | Complexity |
-|----------|---------|-------------|---------------|------------|
-| **CPython** | Fast (~50ms) | Baseline | Excellent | Simple |
-| **GraalPy (this demo)** | Slow (~600ms) | Good (JIT) | Limited | Medium |
-| **Jython** | Medium | Slow | Python 2.7 only | Simple |
-| **JPype** | Fast | Good | Excellent | Medium |
+## Code Structure
 
-**Verdict:** For LLM inference in Java, use native bindings (java-llama.cpp) rather than Python embedding.
+```
+demos/graalpy/
+├── src/main/java/com/skowronski/talk/jvmai/
+│   ├── GraalPyFromJava.java   # Basic embedding (works)
+│   └── GraalPyLlama.java      # LLM attempt (fails)
+├── llama_inference.py         # Python LLM script
+├── scripts/
+│   └── run-llama.sh           # Venv setup wrapper
+├── build.gradle.kts           # 3 tasks: run, runCPython, runLlama
+├── .sdkmanrc                  # GraalVM CE 25
+└── README.md                  # This file
+```
+
+## Technical Insights
+
+### Why Maven Dependencies Work
+
+GraalPy 25+ is distributed as a Maven artifact:
+- `org.graalvm.polyglot:python:25.0.1` - Full Python interpreter
+- `org.graalvm.sdk:graal-sdk:25.0.1` - Polyglot API
+
+This means:
+1. No need for GraalVM-specific JDK
+2. Works with Temurin, Corretto, Zulu, etc.
+3. Reproducible builds
+4. Easy CI/CD integration
+
+### GraalPy vs Jython
+
+| Feature | GraalPy | Jython |
+|---------|---------|--------|
+| Python Version | 3.12+ | 2.7 only |
+| C Extensions | Limited (no struct returns) | None |
+| JIT Performance | Excellent (Graal) | Poor |
+| Startup Time | Slow (~600ms) | Medium (~200ms) |
+| Java Interop | Excellent | Good |
+| Maintenance | Active | Unmaintained |
+
+## Troubleshooting
+
+### "No language and polyglot implementation was found"
+
+**Cause:** Running with wrong JDK or missing GraalPy runtime dependency.
+
+**Fix:** Make sure GraalPy is in classpath:
+```bash
+./gradlew :demos:graalpy:dependencies --configuration runtimeClasspath | grep python
+```
+
+Should show: `org.graalvm.polyglot:python:25.0.1`
+
+### "SystemError: returning struct by value is not supported"
+
+**Cause:** This is expected for `runLlama` - it demonstrates GraalPy's limitation.
+
+**Fix:** Use `runCPython` instead:
+```bash
+./gradlew :demos:graalpy:runCPython
+```
+
+## See Also
+
+- **`demos/java-llama-cpp/`** - JNI bindings for llama.cpp (✅ fastest, ~50 tok/s with GPU)
+- **`demos/llama3-java/`** - Pure Java LLM (✅ no dependencies, ~13 tok/s)
+- **`demos/tornadovm/`** - TornadoVM GPU acceleration (✅ ~6 tok/s)
 
 ## Further Reading
 
 - [GraalPy Documentation](https://www.graalvm.org/python/)
 - [Polyglot API Guide](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/package-summary.html)
 - [GraalPy Compatibility](https://www.graalvm.org/python/compatibility/)
-## See Also
-
-- **`demos/cpython-llama/`** - CPython LLM inference (✅ works, uses llama_inference.py)
-- **`demos/java-llama-cpp/`** - JNI bindings for llama.cpp (✅ works perfectly)
-- **`demos/llama3-java/`** - Pure Java LLM implementation (no Python needed)
+- [Truffle NFI Limitations](https://www.graalvm.org/latest/graalvm-as-a-platform/language-implementation-framework/NFI/)

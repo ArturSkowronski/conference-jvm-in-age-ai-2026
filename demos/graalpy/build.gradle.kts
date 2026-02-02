@@ -22,8 +22,22 @@ application {
 
 tasks.register<JavaExec>("runLlama") {
   group = "application"
-  description = "Runs the GraalPy Llama inference demo"
+  description = "Runs the GraalPy Llama inference demo (fails - demonstrates ctypes limitation)"
   mainClass.set("com.skowronski.talk.jvmai.GraalPyLlama")
   classpath = sourceSets.main.get().runtimeClasspath
   jvmArgs(application.applicationDefaultJvmArgs)
+}
+
+tasks.register<Exec>("runCPython") {
+  group = "application"
+  description = "Run CPython llama inference (works - shows CPython compatibility)"
+  workingDir = projectDir
+  commandLine = listOf(
+    "python3",
+    "llama_inference.py",
+    "--prompt",
+    "Tell me a short joke about programming.",
+    "--max-tokens",
+    "32"
+  )
 }
