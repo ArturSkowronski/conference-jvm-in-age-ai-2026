@@ -5,7 +5,7 @@
 <div align="center">
 
 <a href="https://github.com/ArturSkowronski/ArturSkowronski/blob/main/talks/media/11%20-%20JVM%20in%20the%20Age%20of%20AI%20-2026%20edition_compressed.pdf">
-  <img src="https://raw.githubusercontent.com/ArturSkowronski/ArturSkowronski/main/talks/media/slides/jvm-ai-2026-cover.png" alt="JVM in the Age of AI - 2026 Edition" width="600"/>
+  <img src="https://raw.githubusercontent.com/ArturSkowronski/ArturSkowronski/main/media/slidedeck.jpg" alt="JVM in the Age of AI - 2026 Edition" width="800"/>
 </a>
 
 **[📥 View Full Presentation (PDF)](https://github.com/ArturSkowronski/ArturSkowronski/blob/main/talks/media/11%20-%20JVM%20in%20the%20Age%20of%20AI%20-2026%20edition_compressed.pdf)**
