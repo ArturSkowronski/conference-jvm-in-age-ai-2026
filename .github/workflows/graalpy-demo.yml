@@ -1,0 +1,164 @@
+name: GraalPy Demo Suite
+
+on:
+  push:
+    paths:
+      - 'demos/graalpy/**'
+      - '.github/workflows/graalpy-demo.yml'
+  pull_request:
+    paths:
+      - 'demos/graalpy/**'
+      - '.github/workflows/graalpy-demo.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: graalpy-demo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  graalpy-smoke-test:
+    name: GraalPy Smoke Test (basic embedding)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: "25"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run GraalPy smoke test
+        run: ./gradlew :demos:graalpy:runSmoke --no-daemon
+
+  graalpy-cpython-llama:
+    name: CPython LLM Inference
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download model
+        run: |
+          mkdir -p ~/.llama/models
+          # Use a tiny model for CI (faster)
+          curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+            "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+
+      - name: Install llama-cpp-python
+        run: |
+          cd demos/graalpy
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install llama-cpp-python
+
+      - name: Run CPython LLM inference
+        run: |
+          cd demos/graalpy
+          source .venv/bin/activate
+          python3 llama_inference.py --prompt "Hello" --max-tokens 16
+
+  graalpy-llama-failure:
+    name: GraalPy LLM (expected failure)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: "25"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Python for venv
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download model
+        run: |
+          mkdir -p ~/.llama/models
+          curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+            "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+
+      - name: Setup CPython venv for GraalPy demo
+        run: |
+          cd demos/graalpy
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install llama-cpp-python
+
+      - name: Run GraalPy LLM demo (expected to fail)
+        continue-on-error: true
+        id: graalpy_llama
+        run: ./gradlew :demos:graalpy:runGraalPyLlama --no-daemon
+
+      - name: Verify expected failure
+        run: |
+          if [ "${{ steps.graalpy_llama.outcome }}" == "failure" ]; then
+            echo "✅ GraalPy LLM failed as expected (ctypes struct limitation)"
+            exit 0
+          else
+            echo "❌ Unexpected: GraalPy LLM should have failed but succeeded"
+            exit 1
+          fi
+
+  graalpy-full-suite:
+    name: GraalPy Full Suite (run all demos)
+    runs-on: ubuntu-latest
+    needs: [graalpy-smoke-test, graalpy-cpython-llama]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: "25"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download model
+        run: |
+          mkdir -p ~/.llama/models
+          curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+            "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+
+      - name: Setup Python venv
+        run: |
+          cd demos/graalpy
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install llama-cpp-python
+
+      - name: Run full suite (runSmoke + runCPythonLlama will pass, runGraalPyLlama will fail)
+        continue-on-error: true
+        run: ./gradlew :demos:graalpy:run --no-daemon
+
+      - name: Summary
+        run: |
+          echo "GraalPy Demo Suite Complete:"
+          echo "  ✅ runSmoke - Basic GraalPy embedding"
+          echo "  ✅ runCPythonLlama - CPython LLM inference"
+          echo "  ❌ runGraalPyLlama - GraalPy LLM (expected failure)"

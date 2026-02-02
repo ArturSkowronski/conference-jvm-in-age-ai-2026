@@ -13,7 +13,6 @@ dependencies {
 
 application {
   mainClass.set("com.skowronski.talk.jvmai.GraalPyFromJava")
-
   applicationDefaultJvmArgs = listOf(
     "-Dpolyglotimpl.DisableVersionChecks=true",
     "-Dpolyglot.engine.WarnInterpreterOnly=false"
@@ -53,25 +52,20 @@ tasks.register<JavaExec>("runGraalPyLlama") {
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Master task: Run all three demos in sequence
-tasks.register("runAll") {
+// Override 'run' task to run all three demos (master task)
+tasks.named("run") {
   group = "application"
   description = "Run all three GraalPy demos in sequence (smoke → CPython → GraalPy)"
 
   dependsOn("runSmoke", "runCPythonLlama", "runGraalPyLlama")
 
   doFirst {
-    println("=" .repeat(60))
-    println("Running all GraalPy demos:")
-    println("  1. runSmoke - Basic GraalPy embedding (works)")
-    println("  2. runCPythonLlama - CPython LLM inference (works)")
-    println("  3. runGraalPyLlama - GraalPy LLM attempt (fails)")
+    println("=".repeat(60))
+    println("GraalPy Demo Suite - Running all three demos:")
+    println("  1. runSmoke - Basic GraalPy embedding (✅ works)")
+    println("  2. runCPythonLlama - CPython LLM inference (✅ works)")
+    println("  3. runGraalPyLlama - GraalPy LLM attempt (❌ fails)")
     println("=".repeat(60))
     println()
   }
-}
-
-// Keep legacy 'run' task for backward compatibility
-tasks.named("run") {
-  dependsOn("runSmoke")
 }

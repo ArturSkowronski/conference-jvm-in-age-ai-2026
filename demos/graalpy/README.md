@@ -12,7 +12,7 @@ Three approaches to running Python on/with the JVM, demonstrating both capabilit
 
 **Run all three demos in sequence:**
 ```bash
-./gradlew :demos:graalpy:runAll
+./gradlew :demos:graalpy:run
 ```
 
 ## Quick Start
@@ -20,8 +20,8 @@ Three approaches to running Python on/with the JVM, demonstrating both capabilit
 ### Run All Demos (Recommended)
 
 ```bash
-# Runs all three demos: runSmoke → runCPythonLlama → runGraalPyLlama
-./gradlew :demos:graalpy:runAll
+# Master task - runs all three demos: runSmoke → runCPythonLlama → runGraalPyLlama
+./gradlew :demos:graalpy:run
 ```
 
 **What happens:**
