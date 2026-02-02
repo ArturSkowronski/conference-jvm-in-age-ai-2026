@@ -132,17 +132,31 @@ sdk env install && sdk env
 [GraalPy] Demo completed successfully
 ```
 
-### LLM Inference Demo (fails)
+### LLM Inference Demo (fails - demonstrates limitation)
 
-```bash
-./gradlew :demos:graalpy:runLlama
-```
+This attempts to run Python LLM inference from Java using llama-cpp-python.
+
+**Prerequisites:**
+1. Set up the CPython demo first:
+   ```bash
+   cd demos/cpython-llama
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install llama-cpp-python
+   ```
+
+2. Run the failing demo:
+   ```bash
+   ./gradlew :demos:graalpy:runLlama
+   ```
 
 **Expected output:**
 ```
 [GraalPy] Polyglot Exception: SystemError:
   Unsupported return type struct LLamaTokenData in ctypes callback
 ```
+
+**Note:** This demo intentionally fails to demonstrate GraalPy's ctypes limitations. The same `llama_inference.py` script works perfectly with CPython - see `demos/cpython-llama/`.
 
 See **Known Issues** for why this fails.
 
@@ -234,10 +248,8 @@ If you need `llama-cpp-python`, use CPython or PyPy, not GraalPy.
 - [GraalPy Documentation](https://www.graalvm.org/python/)
 - [Polyglot API Guide](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/package-summary.html)
 - [GraalPy Compatibility](https://www.graalvm.org/python/compatibility/)
-- [Why GraalPy Llama Fails](../graalpy-llama/README.md)
-
 ## See Also
 
-- **`demos/graalpy-llama/`** - Standalone GraalPy LLM attempt (also fails)
+- **`demos/cpython-llama/`** - CPython LLM inference (✅ works, uses llama_inference.py)
 - **`demos/java-llama-cpp/`** - JNI bindings for llama.cpp (✅ works perfectly)
 - **`demos/llama3-java/`** - Pure Java LLM implementation (no Python needed)

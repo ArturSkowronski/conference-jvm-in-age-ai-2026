@@ -59,7 +59,7 @@ Environment:
 
 Models:
   FP16  - Full precision, best quality (~$FP16_SIZE)
-          Used by: java-llama.cpp, TornadoVM GPULlama3, graalpy-llama
+          Used by: java-llama.cpp, TornadoVM GPULlama3, cpython-llama
 
   Q4_0  - 4-bit quantized, smaller & faster (~$Q4_0_SIZE)
           Used by: Llama3.java (recommended)

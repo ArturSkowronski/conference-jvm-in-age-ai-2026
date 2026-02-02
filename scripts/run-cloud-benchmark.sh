@@ -608,7 +608,7 @@ run_benchmarks() {
 
     if [[ -n "$python_cmd" ]]; then
       run_demo "llama-cpp-python" \
-        "$python_cmd $PROJECT_DIR/demos/graalpy-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
+        "$python_cmd $PROJECT_DIR/demos/cpython-llama/llama_inference.py --prompt 'Tell me a short joke about programming'" \
         false 600
       deactivate 2>/dev/null || true
     else

@@ -17,8 +17,8 @@ public final class GraalPyLlama {
 
         String projectRoot = projectRootDir.getAbsolutePath();
         String venvSitePackages = Paths
-                .get(projectRoot, "demos", "graalpy-llama", ".venv", "lib", "python3.12", "site-packages").toString();
-        String scriptPath = Paths.get(projectRoot, "demos", "graalpy-llama", "llama_inference.py").toString();
+                .get(projectRoot, "demos", "cpython-llama", ".venv", "lib", "python3.12", "site-packages").toString();
+        String scriptPath = Paths.get(projectRoot, "demos", "cpython-llama", "llama_inference.py").toString();
         String modelPath = Paths
                 .get(System.getProperty("user.home"), ".llama", "models", "Llama-3.2-1B-Instruct-f16.gguf").toString();
 
@@ -39,7 +39,7 @@ public final class GraalPyLlama {
             System.out.println("[GraalPy] Context initialized. Importing llama_inference...");
 
             ctx.eval("python", "import sys; sys.path.append('" +
-                    Paths.get(projectRoot, "demos", "graalpy-llama").toString() + "')");
+                    Paths.get(projectRoot, "demos", "cpython-llama").toString() + "')");
 
             Value llamaModule = ctx.eval("python", "import llama_inference; llama_inference");
 

@@ -2,7 +2,7 @@ tasks.register<Exec>("run") {
     group = "application"
     description = "Run CPython llama inference with default prompt"
 
-    workingDir = file("../graalpy-llama")
+    workingDir = projectDir
     commandLine = listOf(
         "python3",
         "llama_inference.py",

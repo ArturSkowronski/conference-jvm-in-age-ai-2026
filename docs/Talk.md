@@ -21,7 +21,7 @@ java -version
 # Download all models (~3.3 GB total)
 ./scripts/download-models.sh --all
 
-# Download only FP16 model (~2.5 GB) - for java-llama.cpp, TornadoVM, graalpy-llama
+# Download only FP16 model (~2.5 GB) - for java-llama.cpp, TornadoVM, cpython-llama
 ./scripts/download-models.sh --fp16
 
 # Download only Q4_0 model (~0.8 GB) - for Llama3.java
@@ -244,7 +244,7 @@ achieved tok/s: 6.64. Tokens: 21, seconds: 3.16
 ### Commands
 
 ```bash
-cd demos/graalpy-llama
+cd demos/cpython-llama
 
 # With GraalPy (currently blocked - see Known Limitation)
 ./scripts/run-llama.sh --prompt "tell me a joke"
@@ -264,7 +264,7 @@ SystemError: ctypes: returning struct by value is not supported.
 The [Truffle NFI](https://www.graalvm.org/latest/graalvm-as-a-platform/language-implementation-framework/NFI/) does not support struct return types, which `llama-cpp-python` requires.
 
 ### Key source file
-- `demos/graalpy-llama/llama_inference.py`
+- `demos/cpython-llama/llama_inference.py`
 
 ---
 
