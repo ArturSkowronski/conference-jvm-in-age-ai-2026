@@ -1,110 +1,119 @@
-# Demo: Llama3.java (Pure Java LLM Inference)
+# Llama3.java - Pure Java LLM Inference
 
-This demo runs Llama model inference using [Llama3.java](https://github.com/mukel/llama3.java) - a pure Java implementation with no native dependencies.
+100% pure Java LLM inference with **no native dependencies** - demonstrates Java Vector API performance improvements.
+
+## Quick Start
+
+```bash
+# Run with JDK 25 (recommended - ~40x faster than JDK 21!)
+./gradlew :demos:llama3-java:run
+```
+
+**Expected output:**
+```
+Loading model...
+Model loaded: Llama-3.2-1B-Instruct
+Parameters: 1.24B
+Prompt: Tell me a short joke about programming.
+
+Why do programmers prefer dark mode?
+Because light attracts bugs!
+
+✅ Generated 18 tokens in 1.4s (~13 tokens/sec)
+```
 
 ## What This Demo Shows
 
-- **100% Pure Java** LLM inference - no JNI, no native libraries
-- Java Vector API for SIMD acceleration
-- GraalVM optimizations for best performance
-- Single-file implementation (~3000 lines of Java)
-- GGUF model format support (Q4_0, Q8_0, F16, BF16)
+- **100% Pure Java** - No JNI, no native libraries
+- **Vector API** - SIMD acceleration in pure Java
+- **JDK version impact** - JDK 21 vs 25 performance difference (~40x!)
+- **Single file** - Entire LLM implementation in one Java file (~3000 lines)
+- **GGUF support** - Compatible with llama.cpp model format
 
 ## Requirements
 
-- JDK 21+ (GraalVM recommended for best performance)
-- Model file in GGUF format (Q4_0 quantization recommended)
-
-## Model Setup
-
-Download the FP16 model (same as other demos for fair comparison):
-
-```bash
-# Using the download script
-./scripts/download-models.sh --fp16
-
-# Or manually
-mkdir -p ~/.llama/models
-curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
-  "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
-```
-
-Note: Q4_0 quantized models also work and load faster, but FP16 is used for benchmark comparisons.
+- **JDK 21+** (JDK 25 strongly recommended)
+- **Model**: `~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf` (~2.5 GB)
 
 ## Running
 
-```bash
-# Basic usage with default Q4_0 model
-./scripts/run-llama3.sh --prompt "Tell me a joke"
-
-# With FP16 model (same as other demos)
-./scripts/run-llama3.sh \
-  --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
-  --prompt "Tell me a joke"
-
-# Interactive chat mode
-./scripts/run-llama3.sh --chat
-
-# With GraalVM for better performance
-sdk use java 25.1.0-graalvm-dev
-./scripts/run-llama3.sh --prompt "Tell me a joke"
-```
-
-### Options
-
-```
---model PATH      Path to GGUF model
---prompt TEXT     Prompt for the model
---max-tokens N    Maximum tokens to generate (default: 256)
---chat            Run in interactive chat mode
---instruct        Run in instruct mode (default)
-```
-
-## Running Directly (Without Script)
-
-You can also run Llama3.java directly:
+### Recommended: JDK 25 (~13 tokens/sec)
 
 ```bash
-java --enable-preview --source 21 --add-modules jdk.incubator.vector \
-  Llama3.java --instruct \
-  --model ~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
-  --prompt "Tell me a joke"
+# Default - uses JDK 25
+./gradlew :demos:llama3-java:run
+
+# Explicit JDK 25
+./gradlew :demos:llama3-java:runJDK25
+
+# Smoke test
+./gradlew :demos:llama3-java:runSmoke
 ```
 
-## GraalVM Native Image (Optional)
-
-For instant startup and minimal memory footprint:
+### Comparison: JDK 21 (~0.3 tokens/sec)
 
 ```bash
-# Compile to native image with model preloaded
-PRELOAD_GGUF=~/.llama/models/Llama-3.2-1B-Instruct-Q4_0.gguf \
-  native-image --enable-preview -O3 -march=native \
-  --add-modules jdk.incubator.vector \
-  -o llama3 Llama3.java
-
-# Run native image
-./llama3 --instruct --prompt "Tell me a joke"
+# Shows how slow JDK 21 is (40x slower!)
+./gradlew :demos:llama3-java:runJDK21
 ```
 
-## Comparison with Other Demos
+**Why the difference?** See [Findings.md](Findings.md) for Vector API performance analysis.
 
-| Demo | Type | Dependencies | GPU Support |
-|------|------|--------------|-------------|
-| **Llama3.java** | Pure Java | None | No (CPU + Vector API) |
-| java-llama.cpp | JNI bindings | llama.cpp native lib | Yes (Metal/CUDA) |
-| TornadoVM GPULlama3 | Pure Java | TornadoVM | Yes (OpenCL/CUDA) |
-| llama-cpp-python | Python + ctypes | llama.cpp native lib | Yes (Metal/CUDA) |
+## Performance
 
-## Key Features
+**JDK 25 (Temurin or GraalVM):**
+- Inference: ~13 tokens/sec
+- Memory: ~3 GB (model loaded)
+- CPU: Fully utilized with Vector API
 
-- **No native dependencies** - runs anywhere Java runs
-- **Vector API acceleration** - uses SIMD when available
-- **GraalVM optimized** - best performance with Graal JIT
-- **AOT compilation** - supports GraalVM Native Image
-- **Educational** - clean, readable single-file implementation
+**JDK 21 (any distribution):**
+- Inference: ~0.3 tokens/sec
+- **40x slower than JDK 25!**
+- Same Vector API, different implementation
 
-## References
+## All Available Tasks
 
-- [Llama3.java GitHub](https://github.com/mukel/llama3.java)
-- [Llama2.java (predecessor)](https://github.com/mukel/llama2.java)
-- [Java Vector API](https://openjdk.org/jeps/448)
+```bash
+# Run with JDK 25 (best performance)
+./gradlew :demos:llama3-java:run
+./gradlew :demos:llama3-java:runJDK25
+./gradlew :demos:llama3-java:runSmoke
+
+# Run with JDK 21 (comparison - very slow)
+./gradlew :demos:llama3-java:runJDK21
+
+# Custom prompt
+./gradlew :demos:llama3-java:run -Pprompt="Explain closures"
+```
+
+## Code Structure
+
+```
+demos/llama3-java/
+├── Llama3.java                  # Single-file LLM (~3000 lines)
+├── scripts/run-llama3.sh        # Legacy script (can be removed)
+├── build.gradle.kts             # Gradle tasks for JDK 21/25
+├── .sdkmanrc                    # JDK 25
+├── README.md                    # This file
+└── Findings.md                  # Vector API analysis
+```
+
+## Why This Demo Matters
+
+**Demonstrates:**
+- Pure Java can do LLM inference
+- Vector API performance is excellent (when optimized)
+- JDK version matters enormously (40x difference!)
+- No native dependencies = works everywhere
+
+**Limitations:**
+- CPU-only (no GPU acceleration)
+- Slower than GPU solutions (java-llama.cpp: ~50 tok/s)
+- But faster than you'd expect for pure Java!
+
+## See Also
+
+- **[Findings.md](Findings.md)** - Vector API deep dive, JDK 21 vs 25 analysis
+- **`demos/java-llama-cpp/`** - JNI with GPU (~50 tok/s)
+- **`demos/graalpy/`** - Python comparison
+- **`demos/tensorflow-ffm/`** - FFM example
