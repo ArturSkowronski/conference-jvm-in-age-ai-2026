@@ -39,24 +39,6 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 ./gradlew runBenchmarks
 ```
 
-## Documentation
-
-- **[docs/Talk.md](docs/Talk.md)** - Live demo script and presentation flow
-- **[docs/Benchmark.md](docs/Benchmark.md)** - Comprehensive benchmark analysis and results
-- **[docs/CloudEnvironmentsAnalysis.md](docs/CloudEnvironmentsAnalysis.md)** - Cloud deployment guide and platform comparison
-- **[docs/Babylon workflow.md](docs/Babylon%20workflow.md)** - Project Babylon specifics and HAT framework
-- **[benchmark-results/gcp/GCP-Benchmark.md](benchmark-results/gcp/GCP-Benchmark.md)** - GCP GPU benchmark results
-
-**Demo-specific findings:**
-- **[demos/graalpy/Findings.md](demos/graalpy/Findings.md)** - GraalPy technical analysis and ctypes limitations
-- **[demos/valhalla/FINDINGS.md](demos/valhalla/FINDINGS.md)** - Float16 and Vector API research
-- **[demos/tensorflow-ffm/Findings.md](demos/tensorflow-ffm/Findings.md)** - FFM vs JNI analysis
-- **[demos/java-llama-cpp/Findings.md](demos/java-llama-cpp/Findings.md)** - JNI performance deep dive
-- **[demos/jcuda/Findings.md](demos/jcuda/Findings.md)** - JCuda vs alternatives
-- **[demos/llama3-java/Findings.md](demos/llama3-java/Findings.md)** - Vector API 40x performance mystery
-- **[demos/babylon/Findings.md](demos/babylon/Findings.md)** - Code Reflection and HAT
-- **[demos/tornadovm/Findings.md](demos/tornadovm/Findings.md)** - TornadoVM technical analysis
-
 ## Demos
 
 ### LLM Inference Demos
@@ -225,3 +207,13 @@ demos/<demo-name>/
 cd cyfra-demo
 ./scripts/run-cyfra-llama.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "Hello"
 ```
+
+**Demo-specific findings:**
+- **[demos/graalpy/Findings.md](demos/graalpy/Findings.md)** - GraalPy technical analysis and ctypes limitations
+- **[demos/valhalla/FINDINGS.md](demos/valhalla/FINDINGS.md)** - Float16 and Vector API research
+- **[demos/tensorflow-ffm/Findings.md](demos/tensorflow-ffm/Findings.md)** - FFM vs JNI analysis
+- **[demos/java-llama-cpp/Findings.md](demos/java-llama-cpp/Findings.md)** - JNI performance deep dive
+- **[demos/jcuda/Findings.md](demos/jcuda/Findings.md)** - JCuda vs alternatives
+- **[demos/llama3-java/Findings.md](demos/llama3-java/Findings.md)** - Vector API 40x performance mystery
+- **[demos/babylon/Findings.md](demos/babylon/Findings.md)** - Code Reflection and HAT
+- **[demos/tornadovm/Findings.md](demos/tornadovm/Findings.md)** - TornadoVM technical analysis
