@@ -68,7 +68,7 @@ import static optkl.ifacemapper.MappableIface.RO;
  * </code>
  * </p>
  */
-public class Main {
+public class HatMatMul {
 
     private static final boolean CHECK_RESULT = true;
 

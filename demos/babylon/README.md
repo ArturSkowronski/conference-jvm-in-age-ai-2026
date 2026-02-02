@@ -72,14 +72,14 @@ This is expected with standard JDK builds
 demos/babylon/
 ├── src/main/java/com/skowronski/talk/jvmai/
 │   └── RuntimeCheck.java        # Module detection (compiles)
-├── HatMatMul.java               # HAT example (reference only, requires Babylon JDK)
-├── build.gradle.kts             # Gradle build
-├── .sdkmanrc                    # Notes about Babylon JDK
+├── HatMatMul.java               # HAT MatMul example (package: com.skowronski.talk.jvmai)
+├── build.gradle.kts             # Gradle build (auto-detects HAT)
+├── .sdkmanrc                    # babylon-26-code-reflection
 ├── README.md                    # This file
 └── Findings.md                  # Babylon/HAT analysis
 ```
 
-**Note:** HatMatMul.java is a reference example from the Babylon project. It requires the full Babylon JDK with HAT framework and cannot be compiled with standard JDK. See [docs/Babylon workflow.md](../../docs/Babylon%20workflow.md) for details.
+**Note:** HatMatMul.java is a HAT framework example. It's in the proper package but kept as a reference file (HAT API is evolving). See [docs/Babylon workflow.md](../../docs/Babylon%20workflow.md) for full HAT setup.
 
 ## Installing Babylon JDK
 

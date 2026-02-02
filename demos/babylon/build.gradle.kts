@@ -64,7 +64,7 @@ tasks.register<JavaExec>("runHatMatMul") {
   })
 
   classpath = sourceSets.main.get().runtimeClasspath
-  mainClass.set("com.skowronski.talk.jvmai.Main")
+  mainClass.set("com.skowronski.talk.jvmai.HatMatMul")
   jvmArgs(listOf(
     "--enable-preview",
     "--add-modules=jdk.incubator.code",
