@@ -1,4 +1,4 @@
-package demo.babylon;
+package com.skowronski.talk.jvmai;
 
 import java.lang.module.ModuleDescriptor;
 import java.util.stream.Collectors;

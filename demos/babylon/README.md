@@ -1,16 +1,102 @@
-# Babylon Runtime Check
+# Babylon Demo - Code Reflection API
 
-This directory contains a simple script to verify the local `babylon-27` JDK environment.
+Demonstrates Project Babylon's Code Reflection capabilities for runtime code introspection.
 
-**Note:** The current local build of `babylon-27` (`27-internal-adhoc.askowronski.babylon`) **does not** appear to contain the Code Reflection API (`jdk.incubator.code` or `java.lang.reflect.code`).
+## Quick Start
 
-## Missing Modules
-The following modules required for [Babylon HAT demos](https://openjdk.org/projects/babylon/articles/hat-matmul/hat-matmul) are missing from this build:
-- `jdk.incubator.code`
-- `java.lang.reflect.code`
-
-## Usage
-Run the check script:
 ```bash
-./run-babylon.sh
+./gradlew :demos:babylon:run
 ```
+
+**Expected output (with Babylon JDK):**
+```
+=== JDK Runtime Information ===
+Java Version:    26-internal
+Java Vendor:     Oracle Corporation
+Runtime Name:    OpenJDK Runtime Environment
+Code Reflection Module Present: true
+✅ Babylon Code Reflection API available
+```
+
+**Expected output (without Babylon JDK - standard JDK 25):**
+```
+=== JDK Runtime Information ===
+Java Version:    25.0.2
+Java Vendor:     Eclipse Adoptium
+Code Reflection Module Present: false
+⚠️  Babylon Code Reflection API not available
+This is expected with standard JDK builds
+```
+
+## What This Demo Shows
+
+- **Runtime JDK detection** - Shows which JDK is running
+- **Module introspection** - Checks for Babylon-specific modules
+- **Code Reflection availability** - Detects if `jdk.incubator.code` is present
+- **Graceful degradation** - Works with any JDK 25+
+
+## Requirements
+
+**For full Babylon features:**
+- Custom Babylon JDK build from https://jdk.java.net/babylon/
+- Code Reflection module included
+
+**For basic demo:**
+- Any JDK 25+ (shows Code Reflection is not available)
+
+## Running
+
+```bash
+# Check runtime environment
+./gradlew :demos:babylon:run
+
+# Smoke test (same)
+./gradlew :demos:babylon:runSmoke
+```
+
+## Results
+
+**With Babylon JDK:**
+- ✅ Code Reflection: Available
+- Shows `jdk.incubator.code` module
+- Can introspect code at runtime
+
+**With Standard JDK:**
+- ⚠️ Code Reflection: Not available
+- Expected behavior
+- Demo still runs (just shows it's missing)
+
+## Code Structure
+
+```
+demos/babylon/
+├── src/main/java/com/skowronski/talk/jvmai/
+│   └── RuntimeCheck.java        # Module detection
+├── build.gradle.kts             # Gradle build
+├── .sdkmanrc                    # Notes about Babylon JDK
+├── README.md                    # This file
+└── Findings.md                  # Babylon/HAT analysis
+```
+
+## Installing Babylon JDK
+
+To test with actual Babylon features:
+
+```bash
+# Download Babylon JDK
+curl -O https://download.java.net/java/early_access/babylon/latest/openjdk-<version>_bin.tar.gz
+
+# Extract and set JAVA_HOME
+tar -xzf openjdk-*.tar.gz
+export JAVA_HOME=$PWD/jdk-<version>
+
+# Run demo
+$JAVA_HOME/bin/java --enable-preview --add-modules=jdk.incubator.code \
+  -cp build/classes/java/main com.skowronski.talk.jvmai.RuntimeCheck
+```
+
+## See Also
+
+- **[Findings.md](Findings.md)** - Babylon and HAT technical analysis
+- **[docs/Babylon workflow.md](../../docs/Babylon%20workflow.md)** - HAT MatMul GPU example
+- **`demos/valhalla/`** - Related research (Vector API)
