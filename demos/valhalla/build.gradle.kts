@@ -42,8 +42,18 @@ tasks.register<JavaExec>("runFP16") {
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Default 'run' executes Vector API demo
-tasks.named<JavaExec>("run") {
-  mainClass.set("com.skowronski.talk.jvmai.VectorAPIDemo")
-  jvmArgs(application.applicationDefaultJvmArgs)
+// Default 'run' executes both demos in sequence
+tasks.named("run") {
+  group = "application"
+  description = "Run both Vector API and FP16 demos"
+  dependsOn("runVectorAPI", "runFP16")
+
+  doFirst {
+    println("=".repeat(60))
+    println("Valhalla Demo Suite - Running both demos:")
+    println("  1. runVectorAPI - Float32 SIMD operations")
+    println("  2. runFP16 - Float16 value type")
+    println("=".repeat(60))
+    println()
+  }
 }

@@ -5,11 +5,8 @@ Demonstrates half-precision floating point (FP16) and Vector API SIMD operations
 ## Quick Start
 
 ```bash
-# Run Vector API demo (Float32 SIMD)
+# Run both demos (Vector API + FP16)
 ./gradlew :demos:valhalla:run
-
-# Run FP16 demo (half-precision)
-./gradlew :demos:valhalla:runFP16
 ```
 
 **Expected output (Vector API):**
@@ -50,14 +47,12 @@ FP16 value: 3.14 → 3.140625 (precision loss expected)
 ## Running
 
 ```bash
-# Vector API (FP32) - default
+# Run both demos (recommended)
 ./gradlew :demos:valhalla:run
 
-# Vector API (FP32) - explicit
-./gradlew :demos:valhalla:runVectorAPI
-
-# FP16 value type demo
-./gradlew :demos:valhalla:runFP16
+# Run individual demos
+./gradlew :demos:valhalla:runVectorAPI  # Vector API (FP32)
+./gradlew :demos:valhalla:runFP16       # Float16 value type
 ```
 
 ## Results
