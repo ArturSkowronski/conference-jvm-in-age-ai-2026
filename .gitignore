@@ -47,3 +47,4 @@ benchmark-run-*.log
 
 # Claude settings
 .claude/settings.local.json
+media/
