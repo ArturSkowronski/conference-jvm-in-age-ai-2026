@@ -25,7 +25,7 @@ tasks.withType<JavaCompile> {
 }
 
 application {
-  mainClass.set("com.llama4j.Llama3")
+  mainClass.set("Llama3")
   applicationDefaultJvmArgs = listOf(
     "--add-modules=jdk.incubator.vector",
     "-Djdk.incubator.vector.VECTOR_ACCESS_OOB_CHECK=0"
