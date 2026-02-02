@@ -1,21 +1,11 @@
+package com.skowronski.talk.jvmai;
+
 /*
  * Vector API Demo - Float32 SIMD Operations
  *
  * Requirements:
  * - JDK 21+ (Vector API in incubator)
  * - Incubator module: jdk.incubator.vector
- *
- * Compile:
- *   javac --add-modules jdk.incubator.vector VectorAPIDemo.java
- *
- * Run:
- *   java --add-modules jdk.incubator.vector VectorAPIDemo
- *
- * This demo showcases:
- * 1. SIMD arithmetic using Vector API with Float (FP32)
- * 2. Dot product computation (vector math)
- * 3. Performance comparison: scalar vs SIMD
- * 4. Fused multiply-add (FMA) operations
  */
 
 import jdk.incubator.vector.*;

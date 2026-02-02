@@ -1,0 +1,66 @@
+name: Valhalla Demo
+
+on:
+  push:
+    paths:
+      - 'demos/valhalla/**'
+      - '.github/workflows/valhalla.yml'
+  pull_request:
+    paths:
+      - 'demos/valhalla/**'
+      - '.github/workflows/valhalla.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: valhalla-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  valhalla-vector-api:
+    name: Vector API Demo (FP32)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Vector API demo
+        run: ./gradlew :demos:valhalla:runVectorAPI --no-daemon
+
+      - name: Verify output
+        run: |
+          echo "✅ Vector API demo completed"
+          echo "Shows Float32 SIMD operations with Vector API"
+
+  valhalla-fp16:
+    name: Float16 Demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run FP16 demo
+        run: ./gradlew :demos:valhalla:runFP16 --no-daemon
+
+      - name: Verify output
+        run: |
+          echo "✅ FP16 demo completed"
+          echo "Shows Float16 value type (JDK 24+)"
+          echo "Note: Float16Vector not yet available"

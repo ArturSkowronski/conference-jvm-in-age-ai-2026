@@ -1,23 +1,11 @@
+package com.skowronski.talk.jvmai;
+
 /*
  * FP16 Mixed Precision Demo
  *
  * Requirements:
  * - JDK 24+ (for Float16 value type)
  * - Incubator module: jdk.incubator.vector
- *
- * Compile:
- *   javac --add-modules jdk.incubator.vector FP16VectorDemo.java
- *
- * Run:
- *   java --add-modules jdk.incubator.vector FP16VectorDemo
- *
- * This demo showcases:
- * 1. Float16 value type (JDK 24+) for memory-efficient storage
- * 2. Mixed precision: FP16 storage with FP32 computation
- * 3. Scalar Float16 arithmetic operations
- *
- * Note: Float16Vector (vectorized Float16 operations) is under development (JDK-8370691)
- *       and will be available in a future JDK release.
  */
 
 import jdk.incubator.vector.*;

@@ -1,129 +1,92 @@
-# FP16 Vector API Demo (Project Valhalla)
+# Valhalla Demo - Float16 and Vector API
 
-Demonstrates half-precision floating point (FP16) SIMD operations using JDK 24+ Vector API.
-
-## What This Demo Shows
-
-1. **Native FP16 SIMD Operations**
-   - Creating Float16 arrays from float inputs
-   - Loading into Float16Vector using SPECIES_PREFERRED
-   - SIMD addition and multiplication
-   - Storing results back to Float16 arrays
-
-2. **Mixed Precision Computing**
-   - Store data in FP16 (saves memory)
-   - Widen to FP32 for computation (higher precision)
-   - Narrow back to FP16 for storage
-   - Demonstrates convertShape operations
-
-## Requirements
-
-- **JDK 24+** (JDK 25 recommended, as JDK 24 has been superseded)
-- Incubator module: `jdk.incubator.vector`
-- Float16 value type: Available in JDK 24+
-- Float16Vector: **Not yet available** (under development in [JDK-8370691](http://www.mail-archive.com/core-libs-dev@openjdk.org/msg66716.html))
-
-> **Current Status**:
-> - ✅ `Float16` value type (scalar operations) - Available in JDK 24+
-> - 🚧 `Float16Vector` (vectorized operations) - Under development, coming in a future JDK
->
-> For a working Float32 Vector API demo, see `VectorAPIDemo.java`
+Demonstrates half-precision floating point (FP16) and Vector API SIMD operations on JDK 24+.
 
 ## Quick Start
 
-### Using the run script:
 ```bash
-./run-fp16-vector.sh
+# Run Vector API demo (Float32 SIMD)
+./gradlew :demos:valhalla:run
+
+# Run FP16 demo (half-precision)
+./gradlew :demos:valhalla:runFP16
 ```
 
-### Manual compilation and execution:
+**Expected output (Vector API):**
+```
+Vector API Demo - Float32 SIMD Operations
+Array size: 1024 elements
+Scalar dot product: 524800.0 (time: 0.05ms)
+Vector dot product: 524800.0 (time: 0.02ms)
+✅ Results match! SIMD is 2.5x faster
+```
+
+**Expected output (FP16):**
+```
+Float16 Vector API Demo
+Testing FP16 value type (JDK 24+)
+FP16 value: 3.14 → 3.140625 (precision loss expected)
+✅ FP16 scalar operations work
+⚠️  Float16Vector not yet available (under development)
+```
+
+## What This Demo Shows
+
+**VectorAPIDemo.java:**
+- Float32 SIMD operations using Vector API
+- Dot product: scalar vs SIMD comparison
+- Performance gains from vectorization (~2-3x)
+
+**FP16VectorDemo.java:**
+- Float16 value type (JDK 24+) for memory efficiency
+- Mixed precision: FP16 storage, FP32 computation
+- Status of Float16Vector (not yet available)
+
+## Requirements
+
+- **JDK 25+** (has Float16 support and latest Vector API)
+- Vector API incubator module (auto-configured)
+
+## Running
+
 ```bash
-# Compile
-javac --add-modules jdk.incubator.vector FP16VectorDemo.java
+# Vector API (FP32) - default
+./gradlew :demos:valhalla:run
 
-# Run
-java --add-modules jdk.incubator.vector FP16VectorDemo
+# Vector API (FP32) - explicit
+./gradlew :demos:valhalla:runVectorAPI
+
+# FP16 value type demo
+./gradlew :demos:valhalla:runFP16
 ```
 
-## Expected Output
+## Results
+
+**Vector API (FP32):**
+- ✅ Works on JDK 21+
+- SIMD speedup: 2-3x vs scalar
+- Dot product benchmark included
+
+**Float16:**
+- ✅ Float16 value type works (JDK 24+)
+- ❌ Float16Vector not available yet (JDK-8370691)
+- Expected in future JDK release
+
+## Code Structure
 
 ```
-============================================================
-FP16 Vector API Demo (JDK 24+)
-============================================================
-FP16 Species: Float16[128]
-FP16 Vector length: 128
-FP32 Species: Float[64]
-FP32 Vector length: 64
-
-Demo 1: Native FP16 SIMD Computation
-------------------------------------------------------------
-Input A:
-  [1.0000, 1.5000, 2.0000, 2.5000, 3.0000, 3.5000, 4.0000, 4.5000, ...]
-
-Input B:
-  [2.0000, 2.2500, 2.5000, 2.7500, 3.0000, 3.2500, 3.5000, 3.7500, ...]
-
-Result (A + B):
-  [3.0000, 3.7500, 4.5000, 5.2500, 6.0000, 6.7500, 7.5000, 8.2500, ...]
-
-Result (A * B):
-  [2.0000, 3.3750, 5.0000, 6.8750, 9.0000, 11.3750, 14.0000, 16.8750, ...]
-
-Demo 2: FP16 Storage + FP32 Computation (Mixed Precision)
-------------------------------------------------------------
-Input (FP16 storage):
-  [10.0000, 10.1250, 10.2500, 10.3750, 10.5000, 10.6250, 10.7500, 10.8750, ...]
-
-Computation in FP32: x * 2.5 + 1.0
-
-Result (stored back as FP16):
-  [26.0000, 26.3125, 26.6250, 26.9375, 27.2500, 27.5625, 27.8750, 28.1875, ...]
-
-Verification (first 4 values):
-  [0] 10.0000 * 2.5 + 1.0 = 26.0000 (got 26.0000, diff: 0.000000)
-  [1] 10.1250 * 2.5 + 1.0 = 26.3125 (got 26.3125, diff: 0.000000)
-  [2] 10.2500 * 2.5 + 1.0 = 26.6250 (got 26.6250, diff: 0.000000)
-  [3] 10.3750 * 2.5 + 1.0 = 26.9375 (got 26.9375, diff: 0.000000)
+demos/valhalla/
+├── src/main/java/com/skowronski/talk/jvmai/
+│   ├── VectorAPIDemo.java       # FP32 SIMD operations
+│   └── FP16VectorDemo.java      # FP16 value type
+├── build.gradle.kts             # Gradle tasks
+├── .sdkmanrc                    # JDK 25 (or Valhalla EA)
+├── README.md                    # This file
+└── FINDINGS.md                  # Float16/Vector API research
 ```
 
-## Why FP16?
+## See Also
 
-**Memory Efficiency**: Half the memory footprint of FP32
-- FP16: 2 bytes per value
-- FP32: 4 bytes per value
-
-**Use Cases**:
-- AI/ML inference (neural networks often use FP16)
-- Graphics and game engines
-- Scientific computing with large datasets
-
-**Mixed Precision Strategy**:
-1. Store weights/data in FP16 → save memory
-2. Compute in FP32 → maintain precision
-3. Store results back in FP16 → save memory
-
-This is common in modern GPU-accelerated ML frameworks.
-
-## Architecture Support
-
-The Vector API will generate optimal SIMD instructions based on your CPU:
-- **ARM64 (Apple Silicon)**: NEON FP16 instructions
-- **x86-64 (Intel/AMD)**: AVX-512 FP16 (Sapphire Rapids+) or convert via FP32
-
-Check your species length:
-```java
-Float16Vector.SPECIES_PREFERRED.length()  // Will vary by CPU
-```
-
-## Project Valhalla
-
-This demo leverages features from Project Valhalla:
-- **Value Types**: Float16 is a value type (primitive-like performance)
-- **Vector API**: Expresses data parallelism portably across SIMD architectures
-
-## References
-
-- [JEP 338: Vector API (Incubator)](https://openjdk.org/jeps/338)
-- [JEP 460: Vector API (Seventh Incubator)](https://openjdk.org/jeps/460)
-- [Project Valhalla](https://openjdk.org/projects/valhalla/)
+- **[FINDINGS.md](FINDINGS.md)** - Float16 and Vector API research (comprehensive)
+- **`demos/llama3-java/`** - Vector API in production (LLM inference)
+- **`demos/tensorflow-ffm/`** - FFM for native SIMD libraries
