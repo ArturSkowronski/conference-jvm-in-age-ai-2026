@@ -1,24 +1,24 @@
-# JVM in the Age of AI - Conference Repository
+# Conference Talk: JVM in the Age of AI - 2026 Edition
 
-**Conference Archive** — This repository contains demos, benchmarks, and documentation from the "JVM in the Age of AI" conference talk (2026). All demos are functional and can be run on your own hardware.
+This repository contains demos, benchmarks, and documentation from the "JVM in the Age of AI" conference talk (2026). All demos are functional and can be run on your own hardware.
 
 ## Documentation
 
-- **[Talk.md](Talk.md)** — Live demo script and presentation flow
-- **[Benchmark.md](Benchmark.md)** — Comprehensive benchmark analysis and results
-- **[CloudEnvironmentsAnalysis.md](CloudEnvironmentsAnalysis.md)** — Cloud deployment guide and platform comparison
-- **[Babylon workflow.md](Babylon%20workflow.md)** — Project Babylon specifics and HAT framework
-- **[benchmark-results/gcp/GCP-Benchmark.md](benchmark-results/gcp/GCP-Benchmark.md)** — GCP GPU benchmark results
+- **[Talk.md](Talk.md)** - Live demo script and presentation flow
+- **[Benchmark.md](Benchmark.md)** - Comprehensive benchmark analysis and results
+- **[CloudEnvironmentsAnalysis.md](CloudEnvironmentsAnalysis.md)** - Cloud deployment guide and platform comparison
+- **[Babylon workflow.md](Babylon%20workflow.md)** - Project Babylon specifics and HAT framework
+- **[benchmark-results/gcp/GCP-Benchmark.md](benchmark-results/gcp/GCP-Benchmark.md)** - GCP GPU benchmark results
 
 ## Demos
 
-- `tornadovm-demo/` – simple TornadoVM demo (baseline vs TaskGraph)
-- `cyfra-demo/` – Cyfra LLM inference (Scala 3 → Vulkan GPU via SPIR-V)
-- `demos/jcuda/` — JCuda support demo (CUDA driver + device info)
-- `demos/tensorflow-ffm/` — TensorFlow C API via FFM (no JNI / no Python)
+- `tornadovm-demo/` - simple TornadoVM demo (baseline vs TaskGraph)
+- `cyfra-demo/` - Cyfra LLM inference (Scala 3 → Vulkan GPU via SPIR-V)
+- `demos/jcuda/` - JCuda support demo (CUDA driver + device info)
+- `demos/tensorflow-ffm/` - TensorFlow C API via FFM (no JNI / no Python)
 
 Demo materials:
-- `demos/graalpy/` — GraalPy quickstart + Java interop demos
+- `demos/graalpy/` - GraalPy quickstart + Java interop demos
 Java playground scaffold intended for quick experiments with different JVMs and JDK versions (Temurin, GraalVM, TornadoVM, etc.).
 
 ## Prereqs
@@ -116,9 +116,9 @@ brew install molten-vk
 ```
 
 **Known MoltenVK issues on macOS:**
-- **LWJGL can't find libvulkan** — If you see `Failed to create Vulkan instance`, ensure `VULKAN_SDK` is set and contains `lib/libvulkan.1.dylib`.
-- **MoltenVK version mismatch** — Some Homebrew versions may be incompatible with LWJGL. Prefer the official Vulkan SDK.
-- **Apple Silicon vs Intel** — Both architectures are supported, but ensure you download the correct SDK variant.
+- **LWJGL can't find libvulkan** - If you see `Failed to create Vulkan instance`, ensure `VULKAN_SDK` is set and contains `lib/libvulkan.1.dylib`.
+- **MoltenVK version mismatch** - Some Homebrew versions may be incompatible with LWJGL. Prefer the official Vulkan SDK.
+- **Apple Silicon vs Intel** - Both architectures are supported, but ensure you download the correct SDK variant.
 
 Performance on Apple M1 Pro: ~30 tok/s (Llama-3.2-1B-Instruct-f16.gguf)
 
@@ -156,15 +156,15 @@ See `benchmark-results/gcp/GCP-Benchmark.md` for full results and analysis.
 
 Six issues were encountered during GCP deployment and are documented here for future reference:
 
-1. **GCP Deep Learning VM image renamed** — The image family `common-cu121-ubuntu-2204` no longer exists. Use `common-cu128-ubuntu-2204-nvidia-570` instead (CUDA 12.8, driver 570.x).
+1. **GCP Deep Learning VM image renamed** - The image family `common-cu121-ubuntu-2204` no longer exists. Use `common-cu128-ubuntu-2204-nvidia-570` instead (CUDA 12.8, driver 570.x).
 
-2. **Docker not pre-installed on new DL VM images** — The `common-cu128` image does not include Docker. The deployment script installs Docker CE and `nvidia-container-toolkit` automatically.
+2. **Docker not pre-installed on new DL VM images** - The `common-cu128` image does not include Docker. The deployment script installs Docker CE and `nvidia-container-toolkit` automatically.
 
-3. **TornadoVM backend mismatch** — GPULlama3.java requires the OpenCL backend (`tornado.drivers.opencl` module). Using the PTX backend will fail. Also requires:
+3. **TornadoVM backend mismatch** - GPULlama3.java requires the OpenCL backend (`tornado.drivers.opencl` module). Using the PTX backend will fail. Also requires:
    - `gcc-13` from `ubuntu-toolchain-r` PPA (for `GLIBCXX_3.4.32`)
    - OpenCL ICD configured for NVIDIA: `/etc/OpenCL/vendors/nvidia.icd` containing `libnvidia-opencl.so.1`
 
-4. **NVIDIA driver/library version mismatch after apt-get** — Installing packages (e.g., `gcc-13`) can trigger an NVIDIA userspace library upgrade (e.g., 570.195 → 570.211) while the kernel module stays at the old version. Symptoms:
+4. **NVIDIA driver/library version mismatch after apt-get** - Installing packages (e.g., `gcc-13`) can trigger an NVIDIA userspace library upgrade (e.g., 570.195 → 570.211) while the kernel module stays at the old version. Symptoms:
    - `nvidia-smi` reports `Failed to initialize NVML: Driver/library version mismatch`
    - CUDA programs fail with `CUDA_ERROR_UNKNOWN`
    - OpenCL reports `clGetPlatformIDs -> Returned: -1001`
@@ -172,13 +172,13 @@ Six issues were encountered during GCP deployment and are documented here for fu
 
    **Fix**: Reboot the VM (`sudo reboot`) to reload the kernel module matching the upgraded userspace libraries.
 
-5. **cmake cannot find CUDA compiler on bare metal** — cmake's CUDA language detection can fail on GCP VMs even when `nvcc` is installed. Fix by passing the compiler path explicitly:
+5. **cmake cannot find CUDA compiler on bare metal** - cmake's CUDA language detection can fail on GCP VMs even when `nvcc` is installed. Fix by passing the compiler path explicitly:
    ```bash
    export PATH="/usr/local/cuda/bin:$PATH"
    cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
    ```
 
-6. **Vulkan not working on GCP (NVIDIA Open Kernel Modules)** — GCP Deep Learning VMs use NVIDIA Open Kernel Modules (`nvidia-*-open`) by default, which do **not** support Vulkan. Symptom:
+6. **Vulkan not working on GCP (NVIDIA Open Kernel Modules)** - GCP Deep Learning VMs use NVIDIA Open Kernel Modules (`nvidia-*-open`) by default, which do **not** support Vulkan. Symptom:
    ```
    ERROR: Could not get 'vkCreateInstance' via 'vk_icdGetInstanceProcAddr' for ICD libGLX_nvidia.so.0
    ```
