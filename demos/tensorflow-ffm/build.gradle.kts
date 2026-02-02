@@ -23,6 +23,21 @@ val tfBuildDir = layout.buildDirectory.dir("tensorflow")
 val tfArchive = tfBuildDir.map { it.dir("archive") }
 val tfExtracted = tfBuildDir.map { it.dir("root") }
 
+// Detect platform and archive name
+fun getArchiveName(): String {
+  val os = System.getProperty("os.name").lowercase()
+  val arch = System.getProperty("os.arch").lowercase()
+  val isArm64 = arch == "aarch64" || arch == "arm64"
+  val isX86_64 = arch == "x86_64" || arch == "amd64"
+
+  return when {
+    os.contains("mac") && isArm64 -> "libtensorflow-cpu-darwin-arm64.tar.gz"
+    os.contains("linux") && isX86_64 -> "libtensorflow-cpu-linux-x86_64.tar.gz"
+    os.contains("win") && isX86_64 -> "libtensorflow-cpu-windows-x86_64.zip"
+    else -> error("Unsupported platform: $os $arch")
+  }
+}
+
 // Download TensorFlow C library
 tasks.register("downloadTensorFlow") {
   group = "setup"
@@ -30,51 +45,50 @@ tasks.register("downloadTensorFlow") {
   onlyIf { !tensorflowHome.isPresent }
 
   doLast {
-    val os = System.getProperty("os.name").lowercase()
-    val arch = System.getProperty("os.arch").lowercase()
-    val isArm64 = arch == "aarch64" || arch == "arm64"
-    val isX86_64 = arch == "x86_64" || arch == "amd64"
+    val archiveName = getArchiveName()
+    val url = "https://storage.googleapis.com/tensorflow/versions/$tensorflowVersion/$archiveName"
+    val archiveFile = tfArchive.get().asFile.resolve(archiveName)
 
-    val url = when {
-      os.contains("mac") && isArm64 ->
-        "https://storage.googleapis.com/tensorflow/versions/$tensorflowVersion/libtensorflow-cpu-darwin-arm64.tar.gz"
-      os.contains("linux") && isX86_64 ->
-        "https://storage.googleapis.com/tensorflow/versions/$tensorflowVersion/libtensorflow-cpu-linux-x86_64.tar.gz"
-      os.contains("win") && isX86_64 ->
-        "https://storage.googleapis.com/tensorflow/versions/$tensorflowVersion/libtensorflow-cpu-windows-x86_64.zip"
-      else -> error("Unsupported platform: $os $arch")
+    if (archiveFile.exists() && archiveFile.length() > 0) {
+      logger.lifecycle("TensorFlow archive already downloaded")
+      return@doLast
     }
 
-    val archiveFile = tfArchive.get().asFile.resolve(url.substringAfterLast("/"))
-    if (archiveFile.exists()) return@doLast
-
     archiveFile.parentFile.mkdirs()
-    logger.lifecycle("Downloading TensorFlow $tensorflowVersion...")
+    logger.lifecycle("Downloading TensorFlow $tensorflowVersion from $url...")
     URI(url).toURL().openStream().use { input ->
       archiveFile.outputStream().use { output -> input.copyTo(output) }
     }
+    logger.lifecycle("Downloaded ${archiveFile.length() / 1024 / 1024} MB")
   }
 }
 
-// Extract TensorFlow
+// Extract TensorFlow (Windows - zip)
 tasks.register<Copy>("extractTensorFlowZip") {
-  onlyIf { !tensorflowHome.isPresent && System.getProperty("os.name").lowercase().contains("win") }
+  onlyIf { !tensorflowHome.isPresent && getArchiveName().endsWith(".zip") }
   dependsOn("downloadTensorFlow")
 
-  from(zipTree(tfArchive.get().asFile.listFiles()!!.first()))
-  into(tfExtracted)
+  doFirst {
+    val archiveFile = tfArchive.get().asFile.resolve(getArchiveName())
+    from(zipTree(archiveFile))
+    into(tfExtracted)
+  }
 }
 
+// Extract TensorFlow (Linux/macOS - tar.gz)
 tasks.register<Exec>("extractTensorFlowTar") {
-  onlyIf { !tensorflowHome.isPresent && !System.getProperty("os.name").lowercase().contains("win") }
+  onlyIf { !tensorflowHome.isPresent && !getArchiveName().endsWith(".zip") }
   dependsOn("downloadTensorFlow")
 
-  workingDir(tfExtracted)
-  commandLine("tar", "-xzf", tfArchive.get().asFile.listFiles()!!.first().absolutePath)
-
-  doFirst { tfExtracted.get().asFile.mkdirs() }
+  doFirst {
+    tfExtracted.get().asFile.mkdirs()
+    val archiveFile = tfArchive.get().asFile.resolve(getArchiveName())
+    workingDir = tfExtracted.get().asFile
+    commandLine = listOf("tar", "-xzf", archiveFile.absolutePath)
+  }
 }
 
+// Setup task (download + extract)
 tasks.register("setupTensorFlow") {
   group = "setup"
   description = "Setup TensorFlow C library (download + extract)"
