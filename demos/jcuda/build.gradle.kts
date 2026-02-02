@@ -12,5 +12,19 @@ dependencies {
 }
 
 application {
-  mainClass.set("conf.jvm.jcuda.JCudaInfoDemo")
+  mainClass.set("com.skowronski.talk.jvmai.JCudaInfoDemo")
+}
+
+// Main task - query CUDA driver and device info
+tasks.register<JavaExec>("runSmoke") {
+  group = "application"
+  description = "Run JCuda device info demo (queries CUDA driver)"
+
+  classpath = sourceSets.main.get().runtimeClasspath
+  mainClass.set(application.mainClass)
+}
+
+// Alias 'run' to 'runSmoke'
+tasks.named("run") {
+  dependsOn("runSmoke")
 }

@@ -1,4 +1,4 @@
-package conf.jvm.jcuda;
+package com.skowronski.talk.jvmai;
 
 import java.nio.charset.StandardCharsets;
 import jcuda.driver.CUdevice;
