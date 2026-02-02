@@ -4,11 +4,15 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 
 ## Documentation
 
-- **[Talk.md](Talk.md)** - Live demo script and presentation flow
-- **[Benchmark.md](Benchmark.md)** - Comprehensive benchmark analysis and results
-- **[CloudEnvironmentsAnalysis.md](CloudEnvironmentsAnalysis.md)** - Cloud deployment guide and platform comparison
-- **[Babylon workflow.md](Babylon%20workflow.md)** - Project Babylon specifics and HAT framework
+- **[docs/Talk.md](docs/Talk.md)** - Live demo script and presentation flow
+- **[docs/Benchmark.md](docs/Benchmark.md)** - Comprehensive benchmark analysis and results
+- **[docs/CloudEnvironmentsAnalysis.md](docs/CloudEnvironmentsAnalysis.md)** - Cloud deployment guide and platform comparison
+- **[docs/Babylon workflow.md](docs/Babylon%20workflow.md)** - Project Babylon specifics and HAT framework
 - **[benchmark-results/gcp/GCP-Benchmark.md](benchmark-results/gcp/GCP-Benchmark.md)** - GCP GPU benchmark results
+
+**Demo-specific findings:**
+- **[demos/graalpy/Findings.md](demos/graalpy/Findings.md)** - GraalPy technical analysis and ctypes limitations
+- **[demos/valhalla/FINDINGS.md](demos/valhalla/FINDINGS.md)** - Float16 and Vector API research
 
 ## Demos
 
