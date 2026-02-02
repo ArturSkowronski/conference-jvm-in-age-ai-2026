@@ -20,17 +20,19 @@ application {
   )
 }
 
-tasks.register<JavaExec>("runLlama") {
+// Task 1: Basic GraalPy embedding (smoke test)
+tasks.register<JavaExec>("runSmoke") {
   group = "application"
-  description = "Runs the GraalPy Llama inference demo (fails - demonstrates ctypes limitation)"
-  mainClass.set("com.skowronski.talk.jvmai.GraalPyLlama")
+  description = "Run basic GraalPy embedding demo (smoke test - works)"
+  mainClass.set("com.skowronski.talk.jvmai.GraalPyFromJava")
   classpath = sourceSets.main.get().runtimeClasspath
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-tasks.register<Exec>("runCPython") {
+// Task 2: CPython LLM inference
+tasks.register<Exec>("runCPythonLlama") {
   group = "application"
-  description = "Run CPython llama inference (works - shows CPython compatibility)"
+  description = "Run CPython LLM inference (works - shows CPython compatibility)"
   workingDir = projectDir
   commandLine = listOf(
     "python3",
@@ -40,4 +42,36 @@ tasks.register<Exec>("runCPython") {
     "--max-tokens",
     "32"
   )
+}
+
+// Task 3: GraalPy LLM attempt (fails)
+tasks.register<JavaExec>("runGraalPyLlama") {
+  group = "application"
+  description = "Run GraalPy LLM inference demo (fails - demonstrates ctypes limitation)"
+  mainClass.set("com.skowronski.talk.jvmai.GraalPyLlama")
+  classpath = sourceSets.main.get().runtimeClasspath
+  jvmArgs(application.applicationDefaultJvmArgs)
+}
+
+// Master task: Run all three demos in sequence
+tasks.register("runAll") {
+  group = "application"
+  description = "Run all three GraalPy demos in sequence (smoke → CPython → GraalPy)"
+
+  dependsOn("runSmoke", "runCPythonLlama", "runGraalPyLlama")
+
+  doFirst {
+    println("=" .repeat(60))
+    println("Running all GraalPy demos:")
+    println("  1. runSmoke - Basic GraalPy embedding (works)")
+    println("  2. runCPythonLlama - CPython LLM inference (works)")
+    println("  3. runGraalPyLlama - GraalPy LLM attempt (fails)")
+    println("=".repeat(60))
+    println()
+  }
+}
+
+// Keep legacy 'run' task for backward compatibility
+tasks.named("run") {
+  dependsOn("runSmoke")
 }

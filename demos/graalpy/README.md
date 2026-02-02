@@ -6,22 +6,41 @@ Three approaches to running Python on/with the JVM, demonstrating both capabilit
 
 | Demo | Technology | Status | Command |
 |------|------------|--------|---------|
-| **Basic Embedding** | Java → GraalPy | ✅ Works | `./gradlew :demos:graalpy:run` |
-| **CPython LLM** | Standard Python | ✅ Works (~10 tok/s) | `./gradlew :demos:graalpy:runCPython` |
-| **GraalPy LLM** | Java → GraalPy → llama.cpp | ❌ Fails (educational) | `./gradlew :demos:graalpy:runLlama` |
+| **Smoke Test** | Java → GraalPy | ✅ Works | `./gradlew :demos:graalpy:runSmoke` |
+| **CPython LLM** | Standard Python | ✅ Works (~10 tok/s) | `./gradlew :demos:graalpy:runCPythonLlama` |
+| **GraalPy LLM** | Java → GraalPy → llama.cpp | ❌ Fails (educational) | `./gradlew :demos:graalpy:runGraalPyLlama` |
+
+**Run all three demos in sequence:**
+```bash
+./gradlew :demos:graalpy:runAll
+```
 
 ## Quick Start
 
-### 1. Basic GraalPy Embedding (✅ Works)
+### Run All Demos (Recommended)
 
 ```bash
-./gradlew :demos:graalpy:run
+# Runs all three demos: runSmoke → runCPythonLlama → runGraalPyLlama
+./gradlew :demos:graalpy:runAll
+```
+
+**What happens:**
+1. ✅ **runSmoke** - GraalPy basic embedding (works)
+2. ✅ **runCPythonLlama** - Python LLM via CPython (works, ~10 tok/s)
+3. ❌ **runGraalPyLlama** - Python LLM via GraalPy (fails with ctypes error)
+
+### Individual Demos
+
+#### 1. Smoke Test - Basic GraalPy Embedding
+
+```bash
+./gradlew :demos:graalpy:runSmoke
 ```
 
 **What it does:**
 - Creates a Python context from Java (Polyglot API)
 - Evaluates Python expressions: `1.5 + 2.25`
-- Shows Python version and seamless value conversion
+- Shows Python version and value conversion
 
 **Expected output:**
 ```
@@ -31,7 +50,7 @@ Three approaches to running Python on/with the JVM, demonstrating both capabilit
 ✅ Demo completed successfully
 ```
 
-### 2. CPython LLM Inference (✅ Works)
+#### 2. CPython LLM Inference
 
 **Setup (first time only):**
 ```bash
@@ -39,59 +58,67 @@ cd demos/graalpy
 python3 -m venv .venv
 source .venv/bin/activate
 pip install llama-cpp-python
+
+# Download model if needed
+cd ../..
+./scripts/download-models.sh --fp16
 ```
 
 **Run:**
 ```bash
 # With Gradle
-./gradlew :demos:graalpy:runCPython
+./gradlew :demos:graalpy:runCPythonLlama
 
-# Or directly
+# Or run Python directly
+cd demos/graalpy
 python3 llama_inference.py --prompt "tell me a joke" --max-tokens 32
 ```
 
 **Expected output:**
 ```
 Model loaded in 23.2s
+Generating response...
 A programmer's wife asks: "Could you go to the store and get a gallon of milk?"
 He never returned.
-✅ ~10 tokens/sec
+✅ Generated 23 tokens in 2.3s (~10 tokens/sec)
 ```
 
-### 3. GraalPy LLM Attempt (❌ Fails - Educational)
+#### 3. GraalPy LLM Attempt
+
+**Prerequisites:** CPython venv setup (see above)
 
 ```bash
-./gradlew :demos:graalpy:runLlama
+./gradlew :demos:graalpy:runGraalPyLlama
 ```
 
 **Expected output:**
 ```
 [GraalPy] Polyglot Exception: SystemError:
   Unsupported return type struct LLamaTokenData in ctypes callback
-❌ Demonstrates GraalPy's ctypes struct limitation
+❌ This intentionally fails to demonstrate GraalPy's ctypes limitation
 ```
 
 ## Requirements
 
-**Basic Demo:**
-- Any JDK 21+
-- GraalPy (auto-downloaded via Gradle)
+**Smoke Test:**
+- Any JDK 21+ (Temurin, GraalVM, etc.)
+- GraalPy runtime (auto-downloaded via Gradle)
 
-**CPython Demo:**
-- Python 3.10+
-- llama-cpp-python
-- Model: `~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf` (download: `../../scripts/download-models.sh --fp16`)
+**CPython LLM:**
+- Python 3.10+ (standard CPython)
+- llama-cpp-python (`pip install llama-cpp-python`)
+- Model file: `~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf` (~2.5 GB)
 
-**GraalPy LLM Demo:**
-- Same as CPython (shows it fails with GraalPy)
+**GraalPy LLM:**
+- Same as CPython (to demonstrate the failure)
 
 ## Results Summary
 
-| Approach | Startup | Performance | Compatibility | Result |
-|----------|---------|-------------|---------------|--------|
-| **GraalPy Basic** | 600ms | Excellent (JIT) | Pure Python only | ✅ Works |
-| **CPython LLM** | 50ms | ~10 tok/s | Full ctypes | ✅ Works |
-| **GraalPy LLM** | 600ms | N/A | Limited ctypes | ❌ Fails |
+| Demo | Startup | Performance | Compatibility | Result |
+|------|---------|-------------|---------------|--------|
+| **runSmoke** | ~600ms | Fast (basic ops) | Pure Python | ✅ Works |
+| **runCPythonLlama** | ~50ms | ~10 tok/s | Full ctypes | ✅ Works |
+| **runGraalPyLlama** | ~600ms | N/A | Limited ctypes | ❌ Fails |
 
 ## Key Findings
 
@@ -103,42 +130,44 @@ He never returned.
 
 ❌ **GraalPy is NOT suitable for:**
 - LLM inference (ctypes struct limitation)
-- Complex C extensions with callbacks
-- Quick one-off scripts (startup too slow)
+- Complex C extensions with struct callbacks
+- Quick one-off scripts (startup cost too high)
 
-**Recommendation:** For LLM inference in Java, use **`demos/java-llama-cpp/`** (JNI bindings, ~50 tok/s) or **`demos/llama3-java/`** (pure Java, ~13 tok/s).
+**Conclusion:** The same `llama_inference.py` works with CPython but fails with GraalPy, clearly demonstrating the ctypes limitation.
+
+**Recommendation:** For LLM inference in Java, use:
+- **`demos/java-llama-cpp/`** - JNI bindings (~50 tok/s with Metal GPU)
+- **`demos/llama3-java/`** - Pure Java (~13 tok/s with Vector API)
 
 ## Code Structure
 
 ```
 demos/graalpy/
 ├── src/main/java/com/skowronski/talk/jvmai/
-│   ├── GraalPyFromJava.java      # Basic demo (works)
+│   ├── GraalPyFromJava.java      # Smoke test (works)
 │   └── GraalPyLlama.java         # LLM attempt (fails)
 ├── llama_inference.py            # Python LLM script
 ├── scripts/run-llama.sh          # Venv wrapper
-├── build.gradle.kts              # 3 Gradle tasks
+├── build.gradle.kts              # 5 tasks including runAll
 ├── .sdkmanrc                     # GraalVM CE 25
-├── README.md                     # This file (usage)
-└── Findings.md                   # Technical analysis
+├── README.md                     # This file (quick reference)
+└── Findings.md                   # Technical deep dive
 ```
 
 ## Deep Dive
 
-For detailed technical analysis, performance benchmarks, and architectural insights, see **[Findings.md](Findings.md)**.
-
-Topics covered:
+For comprehensive technical analysis, see **[Findings.md](Findings.md)**:
 - ctypes struct limitation (root cause)
 - Performance analysis (startup, peak, memory)
-- Maven dependencies deep dive
-- GraalPy vs Jython vs JPype comparison
-- Polyglot API design principles
+- Maven dependencies explained
+- GraalPy vs alternatives comparison
+- Architectural insights
 - When to use each approach
 - Lessons learned
 
 ## See Also
 
-- **[Findings.md](Findings.md)** - Technical deep dive and analysis
-- **`demos/java-llama-cpp/`** - JNI bindings (✅ fastest, ~50 tok/s)
-- **`demos/llama3-java/`** - Pure Java LLM (✅ ~13 tok/s)
+- **[Findings.md](Findings.md)** - Technical analysis
+- **`demos/java-llama-cpp/`** - JNI bindings (✅ ~50 tok/s)
+- **`demos/llama3-java/`** - Pure Java (✅ ~13 tok/s)
 - **`demos/tornadovm/`** - GPU acceleration (✅ ~6 tok/s)
