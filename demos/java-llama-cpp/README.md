@@ -1,136 +1,92 @@
-# Demo: java-llama.cpp (JNI Bindings for llama.cpp)
+# java-llama.cpp Demo - JNI Bindings for llama.cpp
 
-This demo runs Llama model inference using [java-llama.cpp](https://github.com/kherud/java-llama.cpp) - Java JNI bindings for llama.cpp.
+High-performance LLM inference using JNI bindings to llama.cpp with Metal/CUDA GPU acceleration.
+
+## Quick Start
+
+```bash
+# Run with default prompt
+./gradlew :demos:java-llama-cpp:run
+```
+
+**Expected output:**
+```
+Loading model from ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf...
+Model loaded in 1.2s
+
+Prompt: Tell me a short joke about programming.
+
+Why do programmers prefer dark mode?
+Because light attracts bugs!
+
+✅ Generated 18 tokens in 0.36s (50.14 tokens/sec)
+Tokens/sec: 50.14
+```
 
 ## What This Demo Shows
 
-- Pure Java LLM inference via JNI bindings to llama.cpp
-- Same GGUF model format as TornadoVM GPULlama3 and GraalPy Llama demos
-- Native performance with Java API convenience
-- Cross-platform support (Linux, macOS, Windows)
+- **JNI bindings** to native llama.cpp library
+- **GPU acceleration** - Metal (macOS) or CUDA (Linux/Windows)
+- **High performance** - ~50 tokens/sec on Apple M1 Pro with Metal
+- **Simple API** - Just 2 lines of code to run inference
+- **Prebuilt natives** - No compilation needed
 
 ## Requirements
 
-- JDK 17+
-- Model file (Llama 3.2 1B Instruct in FP16 format)
+- **JDK 21+**
+- **Model file**: `~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf` (~2.5 GB)
+- **GPU** (optional): Metal (macOS), CUDA (Linux/Windows)
 
-## Model Setup
-
-Download the same model used by other demos (~2.5 GB):
+## Setup
 
 ```bash
-mkdir -p ~/.llama/models
-curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
-  "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+# Download model
+./scripts/download-models.sh --fp16
+
+# Or with SDKMAN
+cd demos/java-llama-cpp
+sdk env install && sdk env
 ```
 
 ## Running
 
 ```bash
-# Using default model and prompt
+# Default prompt
 ./gradlew :demos:java-llama-cpp:run
 
-# With custom prompt
-./gradlew :demos:java-llama-cpp:runLlama -Pprompt="Tell me a joke"
-
-# With custom model path
-./gradlew :demos:java-llama-cpp:runLlama -Pmodel=/path/to/model.gguf -Pprompt="Hello"
+# Smoke test (same as run)
+./gradlew :demos:java-llama-cpp:runSmoke
 ```
 
-## Expected Output
+## Performance
+
+**Apple M1 Pro (Metal GPU):**
+- Model load: ~1-2 seconds
+- Inference: ~50 tokens/sec
+- GPU: Fully utilized via Metal
+
+**Linux (CUDA):**
+- Similar performance with NVIDIA GPU
+- Requires CUDA drivers
+
+**CPU-only:**
+- ~3-5 tokens/sec (fallback mode)
+
+## Code Structure
 
 ```
-============================================================
-java-llama.cpp Inference Demo
-============================================================
-Java: 25
-VM: OpenJDK 64-Bit Server VM
-OS: Mac OS X aarch64
-============================================================
-
-Loading model: /Users/.../.llama/models/Llama-3.2-1B-Instruct-f16.gguf
-Model loaded in 19.47s
-
-Prompt: Tell me a short joke about programming.
-----------------------------------------
-Response:
-Why do programmers prefer dark mode?
-
-Because light attracts bugs.
-----------------------------------------
-
-Stats:
-  Model load time: 19.47s
-  Inference time: 0.43s
-  Tokens generated: 18
-  Tokens/sec: 42.35
+demos/java-llama-cpp/
+├── src/main/java/com/skowronski/talk/jvmai/
+│   └── JavaLlamaCppDemo.java    # Main demo (~50 lines)
+├── build.gradle.kts             # Simple build (39 lines)
+├── .sdkmanrc                    # Temurin 21
+├── README.md                    # This file
+└── Findings.md                  # JNI vs FFM analysis
 ```
 
-Note: On Apple Silicon, java-llama.cpp uses Metal acceleration achieving ~47 tokens/sec during inference.
+## See Also
 
-## CUDA GPU Acceleration
-
-The Maven artifact `de.kherud:llama:4.1.0` bundles **CPU-only** native libraries. To use NVIDIA GPU acceleration, you must build the native library from source with CUDA support.
-
-### Building from source
-
-```bash
-# Clone and build with CUDA
-git clone --depth 1 https://github.com/kherud/java-llama.cpp.git /tmp/java-llama-cpp
-cd /tmp/java-llama-cpp
-mvn compile -q
-
-# Build native library with CUDA (on GCP, add -DCMAKE_CUDA_COMPILER explicitly)
-cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
-cmake --build build --config Release -j$(nproc)
-
-# Copy the CUDA-enabled native library
-mkdir -p ~/jllama-cuda
-find /tmp/java-llama-cpp -name "libjllama.so" -exec cp {} ~/jllama-cuda/ \;
-```
-
-### Running with CUDA
-
-Point java-llama.cpp at the CUDA-built native and enable GPU layer offload:
-
-```bash
-./gradlew :demos:java-llama-cpp:run \
-  -Dde.kherud.llama.lib.path=$HOME/jllama-cuda
-```
-
-The demo's `JavaLlamaCppDemo.java` calls `setGpuLayers(99)` to offload all transformer layers to the GPU when `LLAMA_GPU_LAYERS` is set.
-
-### Performance: CPU vs CUDA
-
-On a GCP n1-standard-4 + Tesla T4 with Llama 3.2 1B Instruct FP16:
-
-| Mode | Tokens/sec | Speedup |
-|------|-----------|---------|
-| CPU-only (Maven native) | 6.42 tok/s | 1x |
-| CUDA (17/17 layers on T4) | **72.89 tok/s** | **11x** |
-
-CUDA offloads all 17 transformer layers to the GPU (`load_tensors: offloaded 17/17 layers to GPU`), putting 2.3 GB of the model in GPU VRAM and achieving 72.89 tok/s generation speed.
-
-### CUDA Troubleshooting
-
-- **cmake can't find nvcc**: Pass `-DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc` explicitly and ensure `/usr/local/cuda/bin` is on `PATH`
-- **`ggml_cuda_init: failed to initialize CUDA: unknown error`**: Check for NVIDIA driver/library version mismatch (`nvidia-smi` will report it). Reboot the machine to reload the kernel module.
-- **Falls back to CPU despite GPU offload**: Verify `nvidia-smi` works, check that `libjllama.so` was built with `-DGGML_CUDA=ON`, and confirm the lib path override is set correctly
-
-## Comparison with Other Demos
-
-| Demo | Technology | Backend | Binding Type |
-|------|------------|---------|--------------|
-| java-llama.cpp | Java + JNI | llama.cpp (CPU or CUDA GPU) | JNI |
-| TornadoVM GPULlama3 | Java | OpenCL (GPU) | Pure Java |
-| llama-cpp-python | Python | llama.cpp (CPU) | ctypes |
-
-## Key Source File
-
-- `src/main/java/conf/jvm/llama/JavaLlamaCppDemo.java`
-
-## References
-
-- [java-llama.cpp GitHub](https://github.com/kherud/java-llama.cpp)
-- [llama.cpp GitHub](https://github.com/ggerganov/llama.cpp)
-- [GGUF Model Format](https://github.com/ggerganov/ggml/blob/master/docs/gguf.md)
+- **[Findings.md](Findings.md)** - JNI technical analysis
+- **`demos/llama3-java/`** - Pure Java LLM (✅ ~13 tok/s, no GPU)
+- **`demos/tensorflow-ffm/`** - FFM instead of JNI
+- **`demos/graalpy/`** - Python embedding (CPython works, GraalPy fails)

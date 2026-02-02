@@ -1,4 +1,4 @@
-package conf.jvm.llama;
+package com.skowronski.talk.jvmai;
 
 import de.kherud.llama.InferenceParameters;
 import de.kherud.llama.LlamaModel;

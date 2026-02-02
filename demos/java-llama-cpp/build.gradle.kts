@@ -12,41 +12,24 @@ dependencies {
 }
 
 application {
-  mainClass.set("conf.jvm.llama.JavaLlamaCppDemo")
-
-  // Use CUDA-built native library if available
-  val cudaLibPath = System.getenv("JLLAMA_CUDA_LIB")
-  if (cudaLibPath != null && File(cudaLibPath).exists()) {
-    applicationDefaultJvmArgs = listOf("-Dde.kherud.llama.lib.path=$cudaLibPath")
-  }
+  mainClass.set("com.skowronski.talk.jvmai.JavaLlamaCppDemo")
 }
 
-tasks.register<JavaExec>("runLlama") {
-  group = "demos"
-  description = "Run java-llama.cpp inference demo"
+// Main task - run with default model and prompt
+tasks.register<JavaExec>("runSmoke") {
+  group = "application"
+  description = "Run java-llama.cpp demo with default prompt"
 
   classpath = sourceSets.main.get().runtimeClasspath
   mainClass.set(application.mainClass)
 
-  val defaultModel = "${System.getProperty("user.home")}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf"
-  val defaultPrompt = "Tell me a short joke about programming."
-
-  val modelPath = if (project.hasProperty("model")) {
-    project.property("model").toString()
-  } else {
-    defaultModel
-  }
-
-  val promptText = if (project.hasProperty("prompt")) {
-    project.property("prompt").toString()
-  } else {
-    defaultPrompt
-  }
-
-  args = listOf(modelPath, promptText)
+  args = listOf(
+    "${System.getProperty("user.home")}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf",
+    "Tell me a short joke about programming."
+  )
 }
 
-// Make the default 'run' task work with sensible defaults
+// Configure default 'run' task same as runSmoke
 tasks.named<JavaExec>("run") {
   args = listOf(
     "${System.getProperty("user.home")}/.llama/models/Llama-3.2-1B-Instruct-f16.gguf",
