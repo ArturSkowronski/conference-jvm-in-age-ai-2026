@@ -5,7 +5,7 @@ Demonstrates Project Babylon's Code Reflection capabilities for runtime code int
 ## Quick Start
 
 ```bash
-# Run both demos (RuntimeCheck + HatMatMul if HAT available)
+# Run Babylon RuntimeCheck
 ./gradlew :demos:babylon:run
 ```
 
@@ -48,12 +48,14 @@ This is expected with standard JDK builds
 ## Running
 
 ```bash
-# Run both demos (RuntimeCheck + HatMatMul if available)
+# Run RuntimeCheck demo
 ./gradlew :demos:babylon:run
 
-# Run individual demos
-./gradlew :demos:babylon:runRuntimeCheck  # Code Reflection check
-./gradlew :demos:babylon:runHatMatMul     # HAT MatMul (if HAT available)
+# Or explicitly
+./gradlew :demos:babylon:runRuntimeCheck
+
+# For HAT MatMul GPU examples, see docs/Babylon workflow.md
+# Run from HAT repository: cd ~/Github/babylon/hat && java @hat/run ffi-opencl matmul 2DTILING
 ```
 
 ## Results

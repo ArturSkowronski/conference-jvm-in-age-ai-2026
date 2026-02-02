@@ -21,19 +21,22 @@ tasks.withType<JavaCompile> {
   ))
 }
 
-// Add HAT dependencies if available
+// Add all HAT dependencies if available
 dependencies {
   if (hasHat) {
-    implementation(files("$hatBuildDir/hat-core-1.0.jar"))
-    implementation(files("$hatBuildDir/hat-backend-ffi-opencl-1.0.jar"))
-    implementation(files("$hatBuildDir/hat-backend-ffi-shared-1.0.jar"))
-    implementation(files("$hatBuildDir/hat-optkl-1.0.jar"))
-    implementation(files("$hatBuildDir/hat-tools-1.0.jar"))
+    fileTree(hatBuildDir) {
+      include("*.jar")
+      exclude("hat-example-*.jar")  // Exclude example JARs
+      exclude("hat-tests-*.jar")
+    }.forEach {
+      implementation(files(it))
+    }
   }
 }
 
-// Main.java (HAT MatMul) kept as reference file in demo root
-// Requires specific HAT version compatibility - not compiled in standard build
+// Note: HatMatMul.java kept as reference in demo root
+// Cannot compile - requires matching HAT API version (NonMappableIface not in current HAT build)
+// HAT API is experimental and changes frequently
 
 application {
   mainClass.set("com.skowronski.talk.jvmai.RuntimeCheck")
@@ -53,46 +56,17 @@ tasks.register<JavaExec>("runRuntimeCheck") {
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Task 2: HAT MatMul (requires Babylon JDK + HAT framework)
-tasks.register<JavaExec>("runHatMatMul") {
+// Note: HatMatMul.java cannot be compiled due to HAT API version mismatch
+// For working HAT examples, run from HAT repository:
+// cd ~/Github/babylon/hat && java @hat/run ffi-opencl matmul 2DTILING
+
+// Default 'run' executes RuntimeCheck
+tasks.named<JavaExec>("run") {
   group = "application"
-  description = "Run HAT MatMul GPU demo (requires Babylon JDK + HAT)"
-  onlyIf { hasHat }
-
-  javaLauncher.set(javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(26))
-  })
-
-  classpath = sourceSets.main.get().runtimeClasspath
-  mainClass.set("com.skowronski.talk.jvmai.HatMatMul")
-  jvmArgs(listOf(
-    "--enable-preview",
-    "--add-modules=jdk.incubator.code",
-    "--add-exports=java.base/jdk.internal.vm.annotation=ALL-UNNAMED"
-  ))
-  args = listOf("ffi-opencl", "matmul", "2DTILING")
+  description = "Run Babylon RuntimeCheck (Code Reflection detection)"
+  jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Default 'run' executes both tasks
-tasks.named("run") {
-  group = "application"
-  description = "Run both RuntimeCheck and HatMatMul (if HAT available)"
-
-  dependsOn("runRuntimeCheck")
-  if (hasHat) {
-    dependsOn("runHatMatMul")
-  }
-
-  doFirst {
-    println("=".repeat(60))
-    println("Babylon Demo Suite:")
-    println("  1. RuntimeCheck - Code Reflection detection")
-    if (hasHat) {
-      println("  2. HatMatMul - GPU MatMul with HAT framework")
-    } else {
-      println("  2. HatMatMul - SKIPPED (HAT not found)")
-    }
-    println("=".repeat(60))
-    println()
-  }
-}
+// Note: runHatMatMul is available but HatMatMul.java is kept as reference
+// HAT API is experimental and requires exact version matching
+// For HAT examples, run directly: cd ~/Github/babylon/hat && java @hat/run ffi-opencl matmul 2DTILING
