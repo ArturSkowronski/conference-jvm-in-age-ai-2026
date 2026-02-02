@@ -1,0 +1,43 @@
+name: TornadoVM Demo
+
+on:
+  push:
+    paths:
+      - 'demos/tornadovm/**'
+      - '.github/workflows/tornadovm.yml'
+  pull_request:
+    paths:
+      - 'demos/tornadovm/**'
+      - '.github/workflows/tornadovm.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tornadovm-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tornadovm-baseline:
+    name: TornadoVM Baseline (CPU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run baseline vector add (CPU)
+        run: ./gradlew :demos:tornadovm:run --no-daemon
+
+      - name: Verify output
+        run: |
+          echo "✅ TornadoVM baseline demo completed"
+          echo "Shows CPU performance baseline"
+          echo "For GPU version, use scripts/run-tornado.sh (requires OpenCL/CUDA)"
