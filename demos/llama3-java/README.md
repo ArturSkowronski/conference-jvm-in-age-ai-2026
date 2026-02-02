@@ -82,8 +82,8 @@ Because light attracts bugs!
 
 ```
 demos/llama3-java/
-├── Llama3.java                  # Single-file LLM (~3000 lines)
-├── scripts/run-llama3.sh        # Legacy script (can be removed)
+├── src/main/java/com/skowronski/talk/jvmai/
+│   └── Llama3.java              # Single-file LLM (~3000 lines)
 ├── build.gradle.kts             # Gradle tasks for JDK 21/25
 ├── .sdkmanrc                    # JDK 25
 ├── README.md                    # This file
