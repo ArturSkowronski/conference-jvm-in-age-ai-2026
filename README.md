@@ -18,8 +18,11 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 - `demos/tensorflow-ffm/` - TensorFlow C API via FFM (no JNI / no Python)
 
 Demo materials:
-- `demos/graalpy/` - GraalPy quickstart + Java interop demos
-Java playground scaffold intended for quick experiments with different JVMs and JDK versions (Temurin, GraalVM, TornadoVM, etc.).
+- `demos/graalpy/` - GraalPy Python embedding (3 demos: basic embedding, CPython LLM, GraalPy LLM)
+- `demos/llama3-java/` - Pure Java LLM inference with Vector API
+- `demos/java-llama-cpp/` - JNI bindings for llama.cpp (fastest)
+- `demos/babylon/` - Project Babylon code reflection
+- `demos/valhalla/` - Project Valhalla value types and FP16
 
 ## Prereqs
 
@@ -36,7 +39,7 @@ This repo includes a `.sdkmanrc`. In the repo root:
 
 - JCuda: `./gradlew :demos:jcuda:run`
 - TensorFlow (FFM): `./gradlew :demos:tensorflow-ffm:runTensorFlow`
-- GraalPy (Java host): `./gradlew :demos:graalpy:run`
+- GraalPy (all 3 demos): `./gradlew :demos:graalpy:run`
 
 ## Switching JDKs
 
