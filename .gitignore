@@ -47,4 +47,5 @@ benchmark-run-*.log
 
 # Claude settings
 .claude/settings.local.json
-media/
+# Keep media/slidedeck.jpg but ignore media/*.pdf
+media/*.pdf
