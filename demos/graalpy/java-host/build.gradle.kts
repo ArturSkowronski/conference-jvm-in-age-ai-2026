@@ -17,7 +17,7 @@ dependencies {
 
 application {
 
-  mainClass.set("demo.GraalPyFromJava")
+  mainClass.set("com.skowronski.talk.jvmai.GraalPyFromJava")
 
   applicationDefaultJvmArgs = listOf(
 
@@ -43,7 +43,7 @@ tasks.register<JavaExec>("runLlama") {
 
 
 
-  mainClass.set("demo.GraalPyLlama")
+  mainClass.set("com.skowronski.talk.jvmai.GraalPyLlama")
 
 
 

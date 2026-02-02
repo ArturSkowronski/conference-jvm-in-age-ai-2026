@@ -2,5 +2,4 @@
 # Requires GraalVM with Python support
 # Use: sdk env install && sdk env
 # After install: gu install python
-java=21.0.2-graalce
-gradle=8.7
+java=25.1.0-graalvm-dev

@@ -1,4 +1,4 @@
-package demo;
+package com.skowronski.talk.jvmai;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
