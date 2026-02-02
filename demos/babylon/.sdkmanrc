@@ -1,0 +1,5 @@
+# Project Babylon Demo - Code Reflection API
+# Requires custom Babylon JDK build (not available via SDKMAN)
+# Download from: https://jdk.java.net/babylon/
+# Note: Set JAVA_HOME manually to your Babylon JDK installation
+# java=27-babylon  # Not available in SDKMAN

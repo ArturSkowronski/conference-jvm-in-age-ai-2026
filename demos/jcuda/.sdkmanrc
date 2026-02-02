@@ -1,0 +1,5 @@
+# JCuda Demo - CUDA support from Java
+# Works with any JDK 21+
+# Use: sdk env install && sdk env
+java=21.0.5-tem
+gradle=8.7

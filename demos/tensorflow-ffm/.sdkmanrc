@@ -1,0 +1,5 @@
+# TensorFlow FFM Demo - Foreign Function & Memory API
+# Requires JDK 22+ (FFM is final in JDK 22)
+# Use: sdk env install && sdk env
+java=25-tem
+gradle=8.7

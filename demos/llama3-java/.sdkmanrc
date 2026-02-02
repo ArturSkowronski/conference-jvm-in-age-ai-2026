@@ -1,0 +1,5 @@
+# Llama3.java Demo - Pure Java LLM with Vector API
+# JDK 25 provides best Vector API performance (~40x faster than JDK 21)
+# Use: sdk env install && sdk env
+java=25-tem
+gradle=8.7

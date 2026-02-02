@@ -1,0 +1,5 @@
+# java-llama.cpp Demo - JNI bindings for llama.cpp
+# Works with any JDK 17+, Temurin 21 recommended
+# Use: sdk env install && sdk env
+java=21.0.5-tem
+gradle=8.7

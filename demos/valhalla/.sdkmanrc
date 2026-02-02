@@ -1,0 +1,5 @@
+# Project Valhalla Demo - Value Types and FP16
+# Requires Valhalla early access JDK (not available via SDKMAN)
+# Download from: https://jdk.java.net/valhalla/
+# Note: Set JAVA_HOME manually to your Valhalla JDK installation
+# java=24-valhalla  # Not available in SDKMAN

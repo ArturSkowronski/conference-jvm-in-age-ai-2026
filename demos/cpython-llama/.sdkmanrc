@@ -1,0 +1,4 @@
+# CPython Llama Demo - Standard Python llama-cpp-python
+# Uses system Python, any JDK for project consistency
+# Use: sdk env install && sdk env
+java=21.0.5-tem

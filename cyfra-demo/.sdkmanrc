@@ -1,0 +1,5 @@
+# Cyfra Demo - Scala 3 GPU via Vulkan/SPIR-V
+# Uses sbt (Scala Build Tool), not Gradle
+# Requires: JDK 17+ and sbt installed
+# Use: sdk env install && sdk env
+java=21.0.5-tem

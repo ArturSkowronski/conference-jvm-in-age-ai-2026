@@ -1,0 +1,5 @@
+# TornadoVM Demo - GPU Acceleration via OpenCL/CUDA
+# Requires GraalVM CE 21 for JVMCI support
+# Use: sdk env install && sdk env
+java=21.0.2-graalce
+gradle=8.7
