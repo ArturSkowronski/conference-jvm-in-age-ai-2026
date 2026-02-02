@@ -8,15 +8,7 @@ val modelPath = providers.gradleProperty("model")
 val prompt = providers.gradleProperty("prompt")
   .orElse("Tell me a short joke about programming.")
 
-// Compile Llama3.java (single-file demo)
-sourceSets {
-  main {
-    java {
-      srcDir(".")
-      include("Llama3.java")
-    }
-  }
-}
+// Standard source directory (Llama3.java in src/main/java/com/skowronski/talk/jvmai/)
 
 tasks.withType<JavaCompile> {
   options.compilerArgs.addAll(listOf(
@@ -25,7 +17,7 @@ tasks.withType<JavaCompile> {
 }
 
 application {
-  mainClass.set("Llama3")
+  mainClass.set("com.skowronski.talk.jvmai.Llama3")
   applicationDefaultJvmArgs = listOf(
     "--add-modules=jdk.incubator.vector",
     "-Djdk.incubator.vector.VECTOR_ACCESS_OOB_CHECK=0"
