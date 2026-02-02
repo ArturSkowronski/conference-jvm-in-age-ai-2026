@@ -1,32 +1,49 @@
+# Build artifacts
 **/build/
 **/out/
 **/.gradle/
-**/.idea/
-**/*.iml
 **/target/
-.DS_Store
+*.class
 .gradle/
 build/
 out/
-claude/settings.local.json
 
-# IntelliJ
+# IDE
+**/.idea/
 .idea/
 *.iml
-
-# VS Code
 .vscode/
+.history/
 
 # macOS
 .DS_Store
 
 # Python
 **/.venv/
+**/venv/
 **/__pycache__/
 *.pyc
+*.pyo
 
 # Models (large binary files)
 models/
+*.bin
+*.gguf
 
-# Benchmark results
-benchmark-results/
+# Benchmark results - keep only markdown summaries
+benchmark-results/**/*.log
+benchmark-results/**/*.json
+benchmark-run-*.log
+!benchmark-results/**/*.md
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Logs
+*.log
+!benchmark-results/**/*.md
+
+# Claude settings
+.claude/settings.local.json

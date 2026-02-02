@@ -1,4 +1,14 @@
-# conference-jvm-in-age-ai-2026
+# JVM in the Age of AI - Conference Repository
+
+**Conference Archive** — This repository contains demos, benchmarks, and documentation from the "JVM in the Age of AI" conference talk (2026). All demos are functional and can be run on your own hardware.
+
+## Documentation
+
+- **[Talk.md](Talk.md)** — Live demo script and presentation flow
+- **[Benchmark.md](Benchmark.md)** — Comprehensive benchmark analysis and results
+- **[CloudEnvironmentsAnalysis.md](CloudEnvironmentsAnalysis.md)** — Cloud deployment guide and platform comparison
+- **[Babylon workflow.md](Babylon%20workflow.md)** — Project Babylon specifics and HAT framework
+- **[benchmark-results/gcp/GCP-Benchmark.md](benchmark-results/gcp/GCP-Benchmark.md)** — GCP GPU benchmark results
 
 ## Demos
 
@@ -144,7 +154,7 @@ See `benchmark-results/gcp/GCP-Benchmark.md` for full results and analysis.
 
 ### GCP / CUDA Troubleshooting
 
-Five issues were encountered during GCP deployment and are documented here for future reference:
+Six issues were encountered during GCP deployment and are documented here for future reference:
 
 1. **GCP Deep Learning VM image renamed** — The image family `common-cu121-ubuntu-2204` no longer exists. Use `common-cu128-ubuntu-2204-nvidia-570` instead (CUDA 12.8, driver 570.x).
 
@@ -167,3 +177,15 @@ Five issues were encountered during GCP deployment and are documented here for f
    export PATH="/usr/local/cuda/bin:$PATH"
    cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
    ```
+
+6. **Vulkan not working on GCP (NVIDIA Open Kernel Modules)** — GCP Deep Learning VMs use NVIDIA Open Kernel Modules (`nvidia-*-open`) by default, which do **not** support Vulkan. Symptom:
+   ```
+   ERROR: Could not get 'vkCreateInstance' via 'vk_icdGetInstanceProcAddr' for ICD libGLX_nvidia.so.0
+   ```
+   **Fix**: Install the proprietary NVIDIA driver which includes Vulkan support:
+   ```bash
+   sudo apt-get install -y nvidia-driver-570-server
+   # Verify Vulkan sees the GPU
+   vulkaninfo --summary | grep deviceName  # Should show "Tesla T4"
+   ```
+   The deployment script (`docker/run-on-gcp.sh`) installs the proprietary driver automatically
