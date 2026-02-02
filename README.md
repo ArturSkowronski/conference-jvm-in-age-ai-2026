@@ -1,5 +1,19 @@
 # Conference Talk: JVM in the Age of AI - 2026 Edition
 
+## 📊 Presentation Slides
+
+<div align="center">
+
+### [📥 View Presentation (PDF)](https://github.com/ArturSkowronski/ArturSkowronski/blob/main/talks/media/11%20-%20JVM%20in%20the%20Age%20of%20AI%20-2026%20edition_compressed.pdf)
+
+**JFokus 2026 - Stockholm, Sweden**
+
+</div>
+
+---
+
+## Build Status
+
 [![GraalPy Demo](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml)
 [![TensorFlow FFM](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tensorflow-ffm.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tensorflow-ffm.yml)
 [![java-llama.cpp](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/java-llama-cpp.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/java-llama-cpp.yml)
