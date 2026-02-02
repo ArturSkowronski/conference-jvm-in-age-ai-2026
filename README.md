@@ -1,4 +1,14 @@
-# conference-jvm-in-age-ai-2026
+# JVM in the Age of AI - Conference Repository
+
+**Conference Archive** — This repository contains demos, benchmarks, and documentation from the "JVM in the Age of AI" conference talk (2026). All demos are functional and can be run on your own hardware.
+
+## Documentation
+
+- **[Talk.md](Talk.md)** — Live demo script and presentation flow
+- **[Benchmark.md](Benchmark.md)** — Comprehensive benchmark analysis and results
+- **[CloudEnvironmentsAnalysis.md](CloudEnvironmentsAnalysis.md)** — Cloud deployment guide and platform comparison
+- **[Babylon workflow.md](Babylon%20workflow.md)** — Project Babylon specifics and HAT framework
+- **[benchmark-results/gcp/GCP-Benchmark.md](benchmark-results/gcp/GCP-Benchmark.md)** — GCP GPU benchmark results
 
 ## Demos
 
