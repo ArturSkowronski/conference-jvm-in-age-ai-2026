@@ -128,7 +128,7 @@ All demos use the same model: Llama 3.2 1B Instruct (FP16, ~2.5 GB)
 # From repository root
 sdk env install && sdk env
 
-# For each demo (optional - each has .sdkmanrc)
+# For each demo (optional - each has .sdkmanrc, they require different JDKs)
 cd demos/<demo-name>
 sdk env install && sdk env
 ```
@@ -225,31 +225,3 @@ demos/<demo-name>/
 cd cyfra-demo
 ./scripts/run-cyfra-llama.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "Hello"
 ```
-
-## Repository Stats
-
-- **Demos:** 10 working demos (8 Java + 1 Scala + 1 TornadoVM)
-- **Documentation:** 20 markdown files
-- **Size:** ~21 MB (optimized, no build artifacts)
-- **GitHub Actions:** 8 CI workflows
-- **Package:** `com.skowronski.talk.jvmai` (all Java demos)
-
-## Cloud Deployment
-
-See [docs/CloudEnvironmentsAnalysis.md](docs/CloudEnvironmentsAnalysis.md) for:
-- Docker deployment
-- GCP GPU instance automation
-- Benchmark automation
-
-## Release Tag
-
-**JFokus 2026 Release:** Tag `JFokus`
-
-```bash
-git clone --branch JFokus https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026
-```
-
-## See Also
-
-- **Conference Talk:** JFokus 2026 - "JVM in the Age of AI"
-- **Repository:** https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026
