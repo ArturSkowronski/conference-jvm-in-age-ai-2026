@@ -50,6 +50,11 @@ public final class GraalPyLlama {
         } catch (PolyglotException e) {
             System.err.println("[GraalPy] Polyglot Exception: " + e.getMessage());
             e.printStackTrace();
+            System.err.println("\n[GraalPy] ============================================================");
+            System.err.println("[GraalPy] Demo failed as expected - GraalPy cannot run llama-cpp-python");
+            System.err.println("[GraalPy] Reason: NumPy/ctypes C extension incompatibility");
+            System.err.println("[GraalPy] ============================================================");
+            System.exit(1); // Fail the task to indicate expected failure
         }
     }
 }
