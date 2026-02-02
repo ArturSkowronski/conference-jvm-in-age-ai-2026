@@ -1,3 +1,5 @@
+package com.skowronski.talk.jvmai;
+
 /*
  * Copyright (c) 2024-2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -22,7 +24,6 @@
  * or visit www.oracle.com if you need additional information or have any
  * questions.
  */
-package matmul;
 
 import hat.Accelerator;
 import hat.Accelerator.Compute;

@@ -71,12 +71,15 @@ This is expected with standard JDK builds
 ```
 demos/babylon/
 ├── src/main/java/com/skowronski/talk/jvmai/
-│   └── RuntimeCheck.java        # Module detection
+│   └── RuntimeCheck.java        # Module detection (compiles)
+├── HatMatMul.java               # HAT example (reference only, requires Babylon JDK)
 ├── build.gradle.kts             # Gradle build
 ├── .sdkmanrc                    # Notes about Babylon JDK
 ├── README.md                    # This file
 └── Findings.md                  # Babylon/HAT analysis
 ```
+
+**Note:** HatMatMul.java is a reference example from the Babylon project. It requires the full Babylon JDK with HAT framework and cannot be compiled with standard JDK. See [docs/Babylon workflow.md](../../docs/Babylon%20workflow.md) for details.
 
 ## Installing Babylon JDK
 
