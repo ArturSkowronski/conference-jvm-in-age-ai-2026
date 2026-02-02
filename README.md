@@ -36,7 +36,7 @@ This repo includes a `.sdkmanrc`. In the repo root:
 
 - JCuda: `./gradlew :demos:jcuda:run`
 - TensorFlow (FFM): `./gradlew :demos:tensorflow-ffm:runTensorFlow`
-- GraalPy (Java host): `./gradlew :demos:graalpy-java-host:run`
+- GraalPy (Java host): `./gradlew :demos:graalpy:run`
 
 ## Switching JDKs
 

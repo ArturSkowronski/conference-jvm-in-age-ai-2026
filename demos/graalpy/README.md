@@ -51,7 +51,7 @@ graalpy python/03_polyglot_api.py
 Build + run using Gradle (will download compile-time dependencies):
 
 ```bash
-./gradlew :demos:graalpy-java-host:run
+./gradlew :demos:graalpy:run
 ```
 
 Notes:

@@ -575,7 +575,7 @@ run_benchmarks() {
 
   # 3. GraalPy Java Host
   run_demo "GraalPy Java Host" \
-    "./gradlew :demos:graalpy-java-host:run --no-daemon --console=plain --info" \
+    "./gradlew :demos:graalpy:run --no-daemon --console=plain --info" \
     false 600
 
   # 4. java-llama.cpp

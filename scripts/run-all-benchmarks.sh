@@ -190,7 +190,7 @@ fi
 print_section "GraalPy Java Host - Polyglot API"
 
 echo -e "  Running GraalPy Java Host..."
-OUTPUT=$(./gradlew :demos:graalpy-java-host:run 2>&1)
+OUTPUT=$(./gradlew :demos:graalpy:run 2>&1)
 PY_VERSION=$(echo "$OUTPUT" | grep "python.version" | sed 's/.*python.version=//' | cut -d' ' -f1)
 PY_RESULT=$(echo "$OUTPUT" | grep "Result:" | sed 's/.*Result: //')
 if [[ -n "$PY_VERSION" ]]; then
@@ -245,6 +245,6 @@ echo ""
 
 echo -e "${BOLD}Demo Status:${NC}"
 echo ""
-echo -e "  ${GREEN}Working:${NC} llama3-java, java-llama-cpp, GPULlama3, cyfra, tensorflow-ffm, babylon, graalpy-java-host"
+echo -e "  ${GREEN}Working:${NC} llama3-java, java-llama-cpp, GPULlama3, cyfra, tensorflow-ffm, babylon, graalpy"
 echo -e "  ${RED}Failing:${NC} graalpy-llama (ctypes limitation)"
 echo ""

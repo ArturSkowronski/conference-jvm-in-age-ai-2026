@@ -124,7 +124,7 @@ JCuda unavailable: java.lang.UnsatisfiedLinkError: ...
 
 ```bash
 # Run Java application that embeds Python
-./gradlew :demos:graalpy-java-host:run
+./gradlew :demos:graalpy:run
 ```
 
 **Expected output:**
@@ -150,7 +150,7 @@ graalpy --jvm demos/graalpy/python/02_java_from_python.py
 ```
 
 ### Key source files
-- `demos/graalpy/java-host/src/main/java/demo/GraalPyFromJava.java`
+- `demos/graalpy/src/main/java/demo/GraalPyFromJava.java`
 - `demos/graalpy/python/01_hello.py`
 - `demos/graalpy/python/02_java_from_python.py`
 

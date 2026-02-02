@@ -234,7 +234,7 @@ run_benchmarks() {
 
   # GraalPy Java Host
   run_demo "GraalPy Java Host" \
-    "$PROJECT_DIR/gradlew :demos:graalpy-java-host:run --no-daemon --console=plain" \
+    "$PROJECT_DIR/gradlew :demos:graalpy:run --no-daemon --console=plain" \
     false 300
 }
 

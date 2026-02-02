@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  graalpy-java-host:
+  graalpy:
     name: GraalPy (GraalVM)
     runs-on: ubuntu-latest
     steps:
@@ -32,7 +32,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build and run GraalPy Java host demo
-        run: ./gradlew :demos:graalpy-java-host:run -PjavaVersion=21 --no-daemon
+        run: ./gradlew :demos:graalpy:run -PjavaVersion=21 --no-daemon
 
   tornadovm-baseline:
     name: TornadoVM demo (baseline)
