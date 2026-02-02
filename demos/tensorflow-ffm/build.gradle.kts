@@ -114,7 +114,16 @@ tasks.register<JavaExec>("runSmoke") {
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Alias 'run' to 'runSmoke'
-tasks.named("run") {
-  dependsOn("runSmoke")
+// Configure 'run' task (from application plugin) same as runSmoke
+tasks.named<JavaExec>("run") {
+  if (!tensorflowHome.isPresent) {
+    dependsOn("setupTensorFlow")
+  }
+
+  javaLauncher.set(javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(25))
+  })
+
+  systemProperty("tensorflow.home", tensorflowHome.orElse(tfExtracted.get().asFile.absolutePath).get())
+  jvmArgs(application.applicationDefaultJvmArgs)
 }
