@@ -327,7 +327,7 @@ check_tornadovm() {
 
   # TornadoVM is auto-downloaded by run-tornado.sh when needed
   # Just check if the scripts exist
-  if [[ -f "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh" ]]; then
+  if [[ -f "$PROJECT_DIR/demos/tornadovm/scripts/run-tornado.sh" ]]; then
     success "TornadoVM scripts available"
     export TORNADOVM_AVAILABLE=true
 
@@ -377,7 +377,7 @@ download_tornadovm() {
   esac
   platform="${os}-${arch}"
 
-  local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
+  local sdk_dir="$PROJECT_DIR/demos/tornadovm/build/tornadovm-sdk"
   local sdk_path="$sdk_dir/tornadovm-${tornadovm_version}-${tornadovm_backend}"
   local filename="tornadovm-${tornadovm_version}-${tornadovm_backend}-${platform}.tar.gz"
   local url="https://github.com/beehive-lab/TornadoVM/releases/download/v${tornadovm_version}/${filename}"
@@ -405,7 +405,7 @@ download_tornadovm() {
 
 # Helper to find TornadoVM SDK path
 find_tornadovm_home() {
-  local sdk_dir="$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk"
+  local sdk_dir="$PROJECT_DIR/demos/tornadovm/build/tornadovm-sdk"
   local tornadovm_version="${TORNADOVM_VERSION:-2.2.0}"
   local tornadovm_backend="${TORNADOVM_BACKEND:-opencl}"
 
@@ -622,21 +622,21 @@ run_benchmarks() {
 
   # 7. TornadoVM Baseline (CPU) - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
   # run_demo "TornadoVM Baseline (CPU)" \
-  #   "$PROJECT_DIR/tornadovm-demo/scripts/run-baseline.sh --size 10000000 --iters 3" \
+  #   "$PROJECT_DIR/demos/tornadovm/scripts/run-baseline.sh --size 10000000 --iters 3" \
   #   false 600
   warn "Skipping TornadoVM Baseline (disabled - requires GCC 13+)"
   set_result "TornadoVM Baseline (CPU)" "SKIPPED (disabled)"
 
   # 8. TornadoVM VectorAdd (GPU) - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
   # run_demo "TornadoVM VectorAdd (GPU)" \
-  #   "$PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 3" \
+  #   "$PROJECT_DIR/demos/tornadovm/scripts/run-tornado.sh --size 10000000 --iters 3" \
   #   true 600
   warn "Skipping TornadoVM VectorAdd (disabled - requires GCC 13+)"
   set_result "TornadoVM VectorAdd (GPU)" "SKIPPED (disabled)"
 
   # 9. TornadoVM GPULlama3 - DISABLED (requires GCC 13+ / Ubuntu 24.04+)
   # run_demo "TornadoVM GPULlama3" \
-  #   "$PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
+  #   "$PROJECT_DIR/demos/tornadovm/scripts/run-gpullama3.sh --model $PROJECT_DIR/models/Llama-3.2-1B-Instruct-f16.gguf --prompt 'Tell me a joke'" \
   #   true 600
   warn "Skipping TornadoVM GPULlama3 (disabled - requires GCC 13+)"
   set_result "TornadoVM GPULlama3" "SKIPPED (disabled)"

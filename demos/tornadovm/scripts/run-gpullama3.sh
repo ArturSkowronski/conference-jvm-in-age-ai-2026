@@ -14,11 +14,11 @@ Notes:
   - Requires TornadoVM (JDK 21) installed.
   - Set TORNADOVM_HOME to your TornadoVM installation directory.
   - Model must be in FP16 format (Q4_K_M and other quantized formats not supported).
-  - The first run clones + builds https://github.com/beehive-lab/GPULlama3.java into tornadovm-demo/build/.
+  - The first run clones + builds https://github.com/beehive-lab/GPULlama3.java into demos/tornadovm/build/.
 
 Examples:
   # Using auto-downloaded SDK (run-tornado.sh downloads it to build/tornadovm-sdk/):
-  export TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl
+  export TORNADOVM_HOME=./demos/tornadovm/build/tornadovm-sdk/tornadovm-2.2.0-opencl
   ./scripts/run-gpullama3.sh --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf --prompt "say hello" --heap-max 6g
 EOF
 }

@@ -9,6 +9,6 @@ include(":demos:tensorflow-ffm")
 include(":demos:graalpy-java-host")
 include(":demos:java-llama-cpp")
 include(":demos:cpython-llama")
-include(":tornadovm-demo")
+include(":demos:tornadovm")
 
 project(":demos:graalpy-java-host").projectDir = file("demos/graalpy/java-host")

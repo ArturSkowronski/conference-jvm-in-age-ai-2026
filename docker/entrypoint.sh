@@ -201,14 +201,14 @@ run_benchmarks() {
   # TornadoVM VectorAdd
   if [[ -d "${TORNADOVM_HOME:-}" ]]; then
     run_demo "TornadoVM VectorAdd" \
-      "JAVA_HOME=$JDK_21 $PROJECT_DIR/tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2" \
+      "JAVA_HOME=$JDK_21 $PROJECT_DIR/demos/tornadovm/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2" \
       true 300
   fi
 
   # TornadoVM GPULlama3
   if [[ -d "${TORNADOVM_HOME:-}" ]]; then
     run_demo "TornadoVM GPULlama3" \
-      "JAVA_HOME=$JDK_21 $PROJECT_DIR/tornadovm-demo/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello'" \
+      "JAVA_HOME=$JDK_21 $PROJECT_DIR/demos/tornadovm/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello'" \
       true 600
   fi
 

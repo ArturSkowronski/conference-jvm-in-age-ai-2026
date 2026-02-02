@@ -12,7 +12,7 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 
 ## Demos
 
-- `tornadovm-demo/` - simple TornadoVM demo (baseline vs TaskGraph)
+- `demos/tornadovm/` - simple TornadoVM demo (baseline vs TaskGraph)
 - `cyfra-demo/` - Cyfra LLM inference (Scala 3 → Vulkan GPU via SPIR-V)
 - `demos/jcuda/` - JCuda support demo (CUDA driver + device info)
 - `demos/tensorflow-ffm/` - TensorFlow C API via FFM (no JNI / no Python)

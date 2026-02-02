@@ -43,7 +43,7 @@ export TORNADOVM_HOME=~/path/to/tornadovm
 
 ### 3) GPULlama3 (real LLM inference on GPU)
 
-This uses the upstream project `beehive-lab/GPULlama3.java` (cloned + built automatically into `tornadovm-demo/build/`).
+This uses the upstream project `beehive-lab/GPULlama3.java` (cloned + built automatically into `demos/tornadovm/build/`).
 
 Requirements:
 - TornadoVM installed (JDK 21), with working OpenCL/CUDA drivers.

@@ -273,8 +273,8 @@ python3 demos/graalpy-llama/llama_inference.py \
 ./demos/llama3-java/scripts/run-llama3.sh --prompt "Tell me a joke"
 
 # TornadoVM (requires setup)
-export TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl
-./tornadovm-demo/scripts/run-gpullama3.sh \
+export TORNADOVM_HOME=./demos/tornadovm/build/tornadovm-sdk/tornadovm-2.2.0-opencl
+./demos/tornadovm/scripts/run-gpullama3.sh \
   --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   --prompt "Tell me a joke"
 ```

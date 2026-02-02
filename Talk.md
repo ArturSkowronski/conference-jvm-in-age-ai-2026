@@ -170,7 +170,7 @@ graalpy --jvm demos/graalpy/python/02_java_from_python.py
 
 ```bash
 # Run vector addition on CPU (plain Java)
-./tornadovm-demo/scripts/run-baseline.sh --size 10000000 --iters 5
+./demos/tornadovm/scripts/run-baseline.sh --size 10000000 --iters 5
 ```
 
 **Expected output:**
@@ -183,7 +183,7 @@ Verify: OK
 
 ```bash
 # Run vector addition on GPU via TornadoVM
-./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5
+./demos/tornadovm/scripts/run-tornado.sh --size 10000000 --iters 5
 ```
 
 **Expected output:**
@@ -213,8 +213,8 @@ mkdir -p ~/.llama/models
 #   "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
 
 # Run LLM inference on GPU
-export TORNADOVM_HOME=./tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl
-./tornadovm-demo/scripts/run-gpullama3.sh \
+export TORNADOVM_HOME=./demos/tornadovm/build/tornadovm-sdk/tornadovm-2.2.0-opencl
+./demos/tornadovm/scripts/run-gpullama3.sh \
   --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
   --prompt "Tell me a joke about Java programming"
 ```
@@ -227,8 +227,8 @@ achieved tok/s: 6.64. Tokens: 21, seconds: 3.16
 ```
 
 ### Key source files
-- `tornadovm-demo/src/baseline/java/demo/baseline/VectorAddBaseline.java`
-- `tornadovm-demo/src/tornado/java/demo/tornadovm/VectorAddTornado.java`
+- `demos/tornadovm/src/baseline/java/demo/baseline/VectorAddBaseline.java`
+- `demos/tornadovm/src/tornado/java/demo/tornadovm/VectorAddTornado.java`
 
 ---
 

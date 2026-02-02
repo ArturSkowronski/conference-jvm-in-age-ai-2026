@@ -47,10 +47,10 @@ jobs:
           java-version: "21"
 
       - name: Ensure executable bits
-        run: chmod +x tornadovm-demo/scripts/run-baseline.sh
+        run: chmod +x demos/tornadovm/scripts/run-baseline.sh
 
       - name: Compile + run baseline
-        run: ./tornadovm-demo/scripts/run-baseline.sh --size 100000 --iters 1 --warmup 0
+        run: ./demos/tornadovm/scripts/run-baseline.sh --size 100000 --iters 1 --warmup 0
 
   tornadovm-taskgraph:
     name: TornadoVM demo (TaskGraph; best-effort run)
@@ -96,8 +96,8 @@ jobs:
       - name: Compile TornadoVM demo (TaskGraph)
         shell: bash
         run: |
-          build_dir="tornadovm-demo/build/tornado-ci"
-          src_dir="tornadovm-demo/src/tornado/java"
+          build_dir="demos/tornadovm/build/tornado-ci"
+          src_dir="demos/tornadovm/src/tornado/java"
           rm -rf "${build_dir}"
           mkdir -p "${build_dir}/mods"
           find "${src_dir}" -name "*.java" > "${build_dir}/sources.txt"
@@ -114,7 +114,7 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          build_dir="tornadovm-demo/build/tornado-ci"
+          build_dir="demos/tornadovm/build/tornado-ci"
           tornado_jars="$(find "${TORNADO_SDK}" -name '*.jar' -print0 | tr '\0' ':')"
 
           java --enable-preview \

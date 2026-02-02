@@ -246,7 +246,7 @@ echo '============================================================'
 mkdir -p ~/results/bare-metal
 
 cd ~/benchmark
-chmod +x gradlew scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh cyfra-demo/scripts/*.sh 2>/dev/null || true
+chmod +x gradlew scripts/*.sh demos/*/scripts/*.sh demos/tornadovm/scripts/*.sh cyfra-demo/scripts/*.sh 2>/dev/null || true
 
 # Llama3.java JDK 21
 echo '>>> [Bare] Llama3.java (JDK 21)...'
@@ -266,19 +266,19 @@ echo '>>> [Bare] JCuda...'
 
 # TornadoVM VectorAdd (OpenCL) - device 0:0 = first backend (OpenCL)
 echo '>>> [Bare] TornadoVM VectorAdd (OpenCL)...'
-JAVA_HOME=$JDK_21 TORNADO_DEVICE=0:0 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd_opencl.log || true
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=0:0 ./demos/tornadovm/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd_opencl.log || true
 
 # TornadoVM VectorAdd (PTX/CUDA) - device 1:0 = second backend (PTX)
 echo '>>> [Bare] TornadoVM VectorAdd (PTX/CUDA)...'
-JAVA_HOME=$JDK_21 TORNADO_DEVICE=1:0 ./tornadovm-demo/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd_ptx.log || true
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=1:0 ./demos/tornadovm/scripts/run-tornado.sh --size 10000000 --iters 5 --warmup 2 2>&1 | tee ~/results/bare-metal/tornado_vectoradd_ptx.log || true
 
 # TornadoVM GPULlama3 (OpenCL) - device 0:0 = first backend (OpenCL)
 echo '>>> [Bare] TornadoVM GPULlama3 (OpenCL)...'
-JAVA_HOME=$JDK_21 TORNADO_DEVICE=0:0 ./tornadovm-demo/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3_opencl.log || true
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=0:0 ./demos/tornadovm/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3_opencl.log || true
 
 # TornadoVM GPULlama3 (PTX/CUDA) - device 1:0 = second backend (PTX)
 echo '>>> [Bare] TornadoVM GPULlama3 (PTX/CUDA)...'
-JAVA_HOME=$JDK_21 TORNADO_DEVICE=1:0 ./tornadovm-demo/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3_ptx.log || true
+JAVA_HOME=$JDK_21 TORNADO_DEVICE=1:0 ./demos/tornadovm/scripts/run-gpullama3.sh --model $MODEL_PATH --prompt 'Hello' 2>&1 | tee ~/results/bare-metal/tornado_gpullama3_ptx.log || true
 
 # Cyfra (Scala/Vulkan GPU) - requires proprietary NVIDIA driver for Vulkan
 echo '>>> [Bare] Cyfra LLM (Scala/Vulkan)...'

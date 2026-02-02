@@ -107,7 +107,7 @@ WORKDIR /workspace
 COPY . /workspace/
 
 # Make scripts executable
-RUN chmod +x scripts/*.sh demos/*/scripts/*.sh tornadovm-demo/scripts/*.sh cyfra-demo/scripts/*.sh docker/entrypoint.sh 2>/dev/null || true
+RUN chmod +x scripts/*.sh demos/*/scripts/*.sh demos/tornadovm/scripts/*.sh cyfra-demo/scripts/*.sh docker/entrypoint.sh 2>/dev/null || true
 RUN chmod +x gradlew
 
 # Build java-llama.cpp native library with CUDA support
@@ -129,8 +129,8 @@ RUN ./gradlew --no-daemon dependencies || true
 RUN if [ -d "$TORNADOVM_HOME" ]; then \
       export JAVA_HOME=/opt/jdk/graalvm-21 && \
       git clone --depth 1 https://github.com/beehive-lab/GPULlama3.java.git \
-        tornadovm-demo/build/gpullama3-src && \
-      cd tornadovm-demo/build/gpullama3-src && \
+        demos/tornadovm/build/gpullama3-src && \
+      cd demos/tornadovm/build/gpullama3-src && \
       ./mvnw -q -DskipTests package || true; \
     fi
 

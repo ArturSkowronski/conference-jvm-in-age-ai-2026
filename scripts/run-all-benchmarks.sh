@@ -55,7 +55,7 @@ print_result() {
 JDK_21="${JDK_21:-$HOME/.sdkman/candidates/java/21.0.2-graalce}"
 JDK_25_TEM="${JDK_25_TEM:-$HOME/.sdkman/candidates/java/25-tem}"
 JDK_25_GRAAL="${JDK_25_GRAAL:-$HOME/.sdkman/candidates/java/25.1.0-graalvm-dev}"
-TORNADOVM_HOME="${TORNADOVM_HOME:-$PROJECT_DIR/tornadovm-demo/build/tornadovm-sdk/tornadovm-2.2.0-opencl}"
+TORNADOVM_HOME="${TORNADOVM_HOME:-$PROJECT_DIR/demos/tornadovm/build/tornadovm-sdk/tornadovm-2.2.0-opencl}"
 
 # Model path
 MODEL_PATH="${MODEL_PATH:-$HOME/.llama/models/Llama-3.2-1B-Instruct-f16.gguf}"
@@ -127,7 +127,7 @@ if [[ -d "$TORNADOVM_HOME" ]]; then
   echo -e "  Running GPULlama3..."
   export TORNADOVM_HOME
   export JVMCI_CONFIG_CHECK=ignore
-  RESULT=$(./tornadovm-demo/scripts/run-gpullama3.sh --model "$MODEL_PATH" --prompt "Hello" 2>&1 | grep "tok/s" | sed 's/.*tok\/s: \([0-9]*\.[0-9]*\).*/\1 tokens\/s/')
+  RESULT=$(./demos/tornadovm/scripts/run-gpullama3.sh --model "$MODEL_PATH" --prompt "Hello" 2>&1 | grep "tok/s" | sed 's/.*tok\/s: \([0-9]*\.[0-9]*\).*/\1 tokens\/s/')
   if [[ -n "$RESULT" ]]; then
     print_result "TornadoVM GPULlama3 (OpenCL)" "$RESULT" "ok"
   else
