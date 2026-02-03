@@ -76,24 +76,23 @@ tasks.register("runBenchmarks") {
 
   doLast {
     // Run benchmarks sequentially to see results clearly
-    project.exec {
-      commandLine("./gradlew", ":demos:llama3-java:run", "--no-daemon")
-    }
-    project.exec {
-      commandLine("./gradlew", ":demos:java-llama-cpp:run", "--no-daemon")
-    }
-    project.exec {
-      commandLine("./gradlew", ":demos:graalpy:runtimeCheck", "--no-daemon")
-    }
-    project.exec {
-      commandLine("./gradlew", ":demos:graalpy:llamaPython", "--no-daemon")
+    fun runGradle(vararg args: String, ignoreFailure: Boolean = false) {
+      val process = ProcessBuilder("./gradlew", *args, "--no-daemon")
+        .inheritIO()
+        .start()
+      val exitCode = process.waitFor()
+      if (exitCode != 0 && !ignoreFailure) {
+        throw GradleException("Command failed with exit code $exitCode")
+      }
     }
 
+    runGradle(":demos:llama3-java:run")
+    runGradle(":demos:java-llama-cpp:run")
+    runGradle(":demos:graalpy:runtimeCheck")
+    runGradle(":demos:graalpy:llamaPython")
+
     // Run GraalPy LLM (expected to fail) - don't fail the build
-    project.exec {
-      commandLine("./gradlew", ":demos:graalpy:llama", "--no-daemon")
-      isIgnoreExitValue = true
-    }
+    runGradle(":demos:graalpy:llama", ignoreFailure = true)
 
     println()
     println("=".repeat(70))
