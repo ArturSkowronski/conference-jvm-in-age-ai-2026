@@ -285,10 +285,10 @@ The [Truffle NFI](https://www.graalvm.org/latest/graalvm-as-a-platform/language-
 ./gradlew :demos:java-llama-cpp:run
 
 # With custom prompt
-./gradlew :demos:java-llama-cpp:runLlama -Pprompt="Tell me a joke"
+./gradlew :demos:java-llama-cpp:run -Pprompt="Tell me a joke"
 
 # With custom model path
-./gradlew :demos:java-llama-cpp:runLlama -Pmodel=/path/to/model.gguf -Pprompt="Hello"
+./gradlew :demos:java-llama-cpp:run -Pmodel=/path/to/model.gguf -Pprompt="Hello"
 ```
 
 ### Expected output

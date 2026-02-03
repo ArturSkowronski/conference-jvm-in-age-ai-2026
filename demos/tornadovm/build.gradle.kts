@@ -20,8 +20,8 @@ application {
   mainClass.set("com.skowronski.talk.jvmai.VectorAddBaseline")
 }
 
-// Baseline demo - runs on any JDK (CPU only)
-tasks.register<JavaExec>("runBaseline") {
+// Runtime check demo - runs on any JDK (CPU only)
+tasks.register<JavaExec>("runtimeCheck") {
   group = "application"
   description = "Run baseline vector add (CPU, no TornadoVM)"
 
@@ -30,7 +30,7 @@ tasks.register<JavaExec>("runBaseline") {
   args = listOf("--size", "10000000", "--iters", "5")
 }
 
-// Alias 'run' to 'runBaseline'
+// Alias 'run' to 'runtimeCheck'
 tasks.named<JavaExec>("run") {
   args = listOf("--size", "10000000", "--iters", "5")
 }

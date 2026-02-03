@@ -16,7 +16,7 @@ echo ""
 echo "1. RuntimeCheck - Code Reflection Detection"
 echo "------------------------------------------------------------"
 cd "$PROJECT_ROOT"
-./gradlew :demos:babylon:runRuntimeCheck
+./gradlew :demos:babylon:runtimeCheck
 
 # Task 2: Run HAT MatMul if HAT is available
 if [ -d "$HAT_DIR" ] && [ -d "$BABYLON_JDK" ]; then

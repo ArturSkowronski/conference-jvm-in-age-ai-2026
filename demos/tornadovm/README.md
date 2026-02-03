@@ -60,7 +60,7 @@ Verify: OK
 ```bash
 # CPU baseline (Gradle)
 ./gradlew :demos:tornadovm:run
-./gradlew :demos:tornadovm:runBaseline
+./gradlew :demos:tornadovm:runtimeCheck
 
 # GPU version (script - auto-downloads TornadoVM)
 cd demos/tornadovm

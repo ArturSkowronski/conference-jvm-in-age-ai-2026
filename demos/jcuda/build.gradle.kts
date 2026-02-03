@@ -16,7 +16,7 @@ application {
 }
 
 // Main task - query CUDA driver and device info
-tasks.register<JavaExec>("runSmoke") {
+tasks.register<JavaExec>("runtimeCheck") {
   group = "application"
   description = "Run JCuda device info demo (queries CUDA driver)"
 
@@ -24,7 +24,7 @@ tasks.register<JavaExec>("runSmoke") {
   mainClass.set(application.mainClass)
 }
 
-// Alias 'run' to 'runSmoke'
+// Alias 'run' to 'runtimeCheck'
 tasks.named("run") {
-  dependsOn("runSmoke")
+  dependsOn("runtimeCheck")
 }

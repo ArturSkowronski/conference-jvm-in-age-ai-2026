@@ -56,7 +56,7 @@ tasks.register("runBenchmarks") {
   group = "benchmarking"
   description = "Run all LLM inference benchmarks (requires model)"
 
-  // Note: GraalPy's runGraalPyLlama is expected to fail (demonstrates ctypes limitation)
+  // Note: GraalPy's llama task is expected to fail (demonstrates ctypes limitation)
   // We don't add it as a dependency to avoid failing the whole build
 
   doFirst {
@@ -67,9 +67,9 @@ tasks.register("runBenchmarks") {
     println()
     println("  1. Llama3.java (Pure Java, Vector API)")
     println("  2. java-llama.cpp (JNI + Metal/CUDA GPU)")
-    println("  3. GraalPy - runSmoke (basic embedding)")
-    println("  4. GraalPy - runCPythonLlama (CPython LLM)")
-    println("  5. GraalPy - runGraalPyLlama (expected to fail)")
+    println("  3. GraalPy - runtimeCheck (basic embedding)")
+    println("  4. GraalPy - llamaPython (CPython LLM)")
+    println("  5. GraalPy - llama (expected to fail)")
     println("=".repeat(70))
     println()
   }
@@ -83,15 +83,15 @@ tasks.register("runBenchmarks") {
       commandLine("./gradlew", ":demos:java-llama-cpp:run", "--no-daemon")
     }
     exec {
-      commandLine("./gradlew", ":demos:graalpy:runSmoke", "--no-daemon")
+      commandLine("./gradlew", ":demos:graalpy:runtimeCheck", "--no-daemon")
     }
     exec {
-      commandLine("./gradlew", ":demos:graalpy:runCPythonLlama", "--no-daemon")
+      commandLine("./gradlew", ":demos:graalpy:llamaPython", "--no-daemon")
     }
 
     // Run GraalPy LLM (expected to fail) - don't fail the build
     exec {
-      commandLine("./gradlew", ":demos:graalpy:runGraalPyLlama", "--no-daemon")
+      commandLine("./gradlew", ":demos:graalpy:llama", "--no-daemon")
       isIgnoreExitValue = true
     }
 

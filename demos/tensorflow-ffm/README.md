@@ -54,11 +54,11 @@ The demo:
 ## All Available Tasks
 
 ```bash
-# Run the demo (alias to runSmoke)
+# Run the demo (alias to runtimeCheck)
 ./gradlew :demos:tensorflow-ffm:run
 
 # Run smoke test (main task)
-./gradlew :demos:tensorflow-ffm:runSmoke
+./gradlew :demos:tensorflow-ffm:runtimeCheck
 
 # Manually setup TensorFlow (optional)
 ./gradlew :demos:tensorflow-ffm:setupTensorFlow

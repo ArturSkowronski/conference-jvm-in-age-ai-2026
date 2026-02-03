@@ -48,5 +48,5 @@ jobs:
           echo "Expected: ~10-15 tokens/sec (pure Java, Vector API)"
 
   # Note: JDK 21 task skipped in CI (requires separate compilation)
-  # Run locally with: ./gradlew :demos:llama3-java:runJDK21
+  # Run locally with: ./gradlew :demos:llama3-java:llama21
   # Shows 40x slower performance due to Vector API differences

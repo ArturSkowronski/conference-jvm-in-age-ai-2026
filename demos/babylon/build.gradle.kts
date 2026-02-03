@@ -47,7 +47,7 @@ application {
 }
 
 // Task 1: Runtime check (works with any JDK 25+)
-tasks.register<JavaExec>("runRuntimeCheck") {
+tasks.register<JavaExec>("runtimeCheck") {
   group = "application"
   description = "Run Babylon runtime check (shows Code Reflection availability)"
 

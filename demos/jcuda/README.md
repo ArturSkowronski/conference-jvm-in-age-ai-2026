@@ -56,7 +56,7 @@ Demonstrates accessing NVIDIA CUDA drivers directly from Java using JCuda bindin
 ./gradlew :demos:jcuda:run
 
 # Explicit smoke test
-./gradlew :demos:jcuda:runSmoke
+./gradlew :demos:jcuda:runtimeCheck
 ```
 
 ## Results

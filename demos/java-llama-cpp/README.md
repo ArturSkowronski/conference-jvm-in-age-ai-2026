@@ -55,7 +55,7 @@ sdk env install && sdk env
 ./gradlew :demos:java-llama-cpp:run
 
 # Smoke test (same as run)
-./gradlew :demos:java-llama-cpp:runSmoke
+./gradlew :demos:java-llama-cpp:run
 ```
 
 ## Performance

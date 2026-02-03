@@ -25,7 +25,7 @@ application {
 }
 
 // Run with JDK 21 (slow Vector API - ~0.3 tokens/sec, for comparison)
-tasks.register<JavaExec>("runJDK21") {
+tasks.register<JavaExec>("llama21") {
   group = "application"
   description = "Run with JDK 21 (old Vector API - ~0.3 tokens/sec, 40x slower!)"
 
@@ -37,6 +37,28 @@ tasks.register<JavaExec>("runJDK21") {
   mainClass.set(application.mainClass)
   jvmArgs(application.applicationDefaultJvmArgs)
   args = listOf("--instruct", "-m", modelPath.get(), "-p", prompt.get(), "--max-tokens", "32")
+}
+
+// Run with JDK 25 (best performance)
+tasks.register<JavaExec>("llama25") {
+  group = "application"
+  description = "Run with JDK 25 (best Vector API - ~13 tokens/sec)"
+
+  javaLauncher.set(javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(25))
+  })
+
+  classpath = sourceSets.main.get().runtimeClasspath
+  mainClass.set(application.mainClass)
+  jvmArgs(application.applicationDefaultJvmArgs)
+  args = listOf("--instruct", "-m", modelPath.get(), "-p", prompt.get(), "--max-tokens", "32")
+}
+
+// Master task - run both llama versions
+tasks.register("llama") {
+  group = "application"
+  description = "Run both JDK 21 and JDK 25 llama demos"
+  dependsOn("llama21", "llama25")
 }
 
 // Default 'run' uses JDK 25 (best performance)

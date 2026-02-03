@@ -6,9 +6,9 @@ Three approaches to running Python on/with the JVM, demonstrating both capabilit
 
 | Demo | Technology | Status | Command |
 |------|------------|--------|---------|
-| **Smoke Test** | Java → GraalPy | ✅ Works | `./gradlew :demos:graalpy:runSmoke` |
-| **CPython LLM** | Standard Python | ✅ Works (~10 tok/s) | `./gradlew :demos:graalpy:runCPythonLlama` |
-| **GraalPy LLM** | Java → GraalPy → llama.cpp | ❌ Fails (educational) | `./gradlew :demos:graalpy:runGraalPyLlama` |
+| **Smoke Test** | Java → GraalPy | ✅ Works | `./gradlew :demos:graalpy:runtimeCheck` |
+| **CPython LLM** | Standard Python | ✅ Works (~10 tok/s) | `./gradlew :demos:graalpy:llamaPython` |
+| **GraalPy LLM** | Java → GraalPy → llama.cpp | ❌ Fails (educational) | `./gradlew :demos:graalpy:llama` |
 
 **Run all three demos in sequence:**
 ```bash
@@ -20,21 +20,21 @@ Three approaches to running Python on/with the JVM, demonstrating both capabilit
 ### Run All Demos (Recommended)
 
 ```bash
-# Master task - runs all three demos: runSmoke → runCPythonLlama → runGraalPyLlama
+# Master task - runs all three demos: runtimeCheck → llamaPython → llama
 ./gradlew :demos:graalpy:run
 ```
 
 **What happens:**
-1. ✅ **runSmoke** - GraalPy basic embedding (works)
-2. ✅ **runCPythonLlama** - Python LLM via CPython (works, ~10 tok/s)
-3. ❌ **runGraalPyLlama** - Python LLM via GraalPy (fails with ctypes error)
+1. ✅ **runtimeCheck** - GraalPy basic embedding (works)
+2. ✅ **llamaPython** - Python LLM via CPython (works, ~10 tok/s)
+3. ❌ **llama** - Python LLM via GraalPy (fails with ctypes error)
 
 ### Individual Demos
 
 #### 1. Smoke Test - Basic GraalPy Embedding
 
 ```bash
-./gradlew :demos:graalpy:runSmoke
+./gradlew :demos:graalpy:runtimeCheck
 ```
 
 **What it does:**
@@ -67,7 +67,7 @@ cd ../..
 **Run:**
 ```bash
 # With Gradle
-./gradlew :demos:graalpy:runCPythonLlama
+./gradlew :demos:graalpy:llamaPython
 
 # Or run Python directly
 cd demos/graalpy
@@ -88,7 +88,7 @@ He never returned.
 **Prerequisites:** CPython venv setup (see above)
 
 ```bash
-./gradlew :demos:graalpy:runGraalPyLlama
+./gradlew :demos:graalpy:llama
 ```
 
 **Expected output:**
@@ -116,9 +116,9 @@ He never returned.
 
 | Demo | Startup | Performance | Compatibility | Result |
 |------|---------|-------------|---------------|--------|
-| **runSmoke** | ~600ms | Fast (basic ops) | Pure Python | ✅ Works |
-| **runCPythonLlama** | ~50ms | ~10 tok/s | Full ctypes | ✅ Works |
-| **runGraalPyLlama** | ~600ms | N/A | Limited ctypes | ❌ Fails |
+| **runtimeCheck** | ~600ms | Fast (basic ops) | Pure Python | ✅ Works |
+| **llamaPython** | ~50ms | ~10 tok/s | Full ctypes | ✅ Works |
+| **llama** | ~600ms | N/A | Limited ctypes | ❌ Fails |
 
 ## Key Findings
 

@@ -98,7 +98,7 @@ java @hat/bld
 
 # RuntimeCheck only (Gradle)
 ./gradlew :demos:babylon:run
-./gradlew :demos:babylon:runRuntimeCheck
+./gradlew :demos:babylon:runtimeCheck
 
 # HAT MatMul directly (from HAT repository)
 cd ~/Github/babylon/hat

@@ -48,7 +48,7 @@ Because light attracts bugs!
 
 ```bash
 # Shows how slow JDK 21 is (40x slower!)
-./gradlew :demos:llama3-java:runJDK21
+./gradlew :demos:llama3-java:llama21
 ```
 
 **Why the difference?** See [Findings.md](Findings.md) for Vector API performance analysis.
@@ -72,7 +72,7 @@ Because light attracts bugs!
 ./gradlew :demos:llama3-java:run
 
 # Run with JDK 21 (comparison - 40x slower!)
-./gradlew :demos:llama3-java:runJDK21
+./gradlew :demos:llama3-java:llama21
 
 # Custom prompt
 ./gradlew :demos:llama3-java:run -Pprompt="Explain closures"

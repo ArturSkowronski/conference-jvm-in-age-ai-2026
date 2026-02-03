@@ -42,8 +42,8 @@ tasks.register<JavaExec>("runFP16") {
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Default 'run' executes both demos in sequence
-tasks.named("run") {
+// runtimeCheck executes both demos in sequence
+tasks.register("runtimeCheck") {
   group = "application"
   description = "Run both Vector API and FP16 demos"
   dependsOn("runVectorAPI", "runFP16")
@@ -56,4 +56,9 @@ tasks.named("run") {
     println("=".repeat(60))
     println()
   }
+}
+
+// Default 'run' executes runtimeCheck
+tasks.named("run") {
+  dependsOn("runtimeCheck")
 }

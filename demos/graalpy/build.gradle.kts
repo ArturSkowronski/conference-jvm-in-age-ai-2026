@@ -19,17 +19,17 @@ application {
   )
 }
 
-// Task 1: Basic GraalPy embedding (smoke test)
-tasks.register<JavaExec>("runSmoke") {
+// Task 1: Basic GraalPy embedding (runtime check)
+tasks.register<JavaExec>("runtimeCheck") {
   group = "application"
-  description = "Run basic GraalPy embedding demo (smoke test - works)"
+  description = "Run basic GraalPy embedding demo (runtime check - works)"
   mainClass.set("com.skowronski.talk.jvmai.GraalPyFromJava")
   classpath = sourceSets.main.get().runtimeClasspath
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
 // Task 2: CPython LLM inference
-tasks.register<Exec>("runCPythonLlama") {
+tasks.register<Exec>("llamaPython") {
   group = "application"
   description = "Run CPython LLM inference (works - shows CPython compatibility)"
   workingDir = projectDir
@@ -44,7 +44,7 @@ tasks.register<Exec>("runCPythonLlama") {
 }
 
 // Task 3: GraalPy LLM attempt (fails)
-tasks.register<JavaExec>("runGraalPyLlama") {
+tasks.register<JavaExec>("llama") {
   group = "application"
   description = "Run GraalPy LLM inference demo (fails - demonstrates ctypes limitation)"
   mainClass.set("com.skowronski.talk.jvmai.GraalPyLlama")
@@ -55,16 +55,16 @@ tasks.register<JavaExec>("runGraalPyLlama") {
 // Override 'run' task to run all three demos (master task)
 tasks.named("run") {
   group = "application"
-  description = "Run all three GraalPy demos in sequence (smoke → CPython → GraalPy)"
+  description = "Run all three GraalPy demos in sequence (runtimeCheck → CPython → GraalPy)"
 
-  dependsOn("runSmoke", "runCPythonLlama", "runGraalPyLlama")
+  dependsOn("runtimeCheck", "llamaPython", "llama")
 
   doFirst {
     println("=".repeat(60))
     println("GraalPy Demo Suite - Running all three demos:")
-    println("  1. runSmoke - Basic GraalPy embedding (✅ works)")
-    println("  2. runCPythonLlama - CPython LLM inference (✅ works)")
-    println("  3. runGraalPyLlama - GraalPy LLM attempt (❌ fails)")
+    println("  1. runtimeCheck - Basic GraalPy embedding (✅ works)")
+    println("  2. llamaPython - CPython LLM inference (✅ works)")
+    println("  3. llama - GraalPy LLM attempt (❌ fails)")
     println("=".repeat(60))
     println()
   }

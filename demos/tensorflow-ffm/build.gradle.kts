@@ -96,7 +96,7 @@ tasks.register("setupTensorFlow") {
 }
 
 // Main task - runs TensorFlow FFM demo
-tasks.register<JavaExec>("runSmoke") {
+tasks.register<JavaExec>("runtimeCheck") {
   group = "application"
   description = "Run TensorFlow FFM demo"
 
@@ -114,7 +114,7 @@ tasks.register<JavaExec>("runSmoke") {
   jvmArgs(application.applicationDefaultJvmArgs)
 }
 
-// Configure 'run' task (from application plugin) same as runSmoke
+// Configure 'run' task (from application plugin) same as runtimeCheck
 tasks.named<JavaExec>("run") {
   if (!tensorflowHome.isPresent) {
     dependsOn("setupTensorFlow")
