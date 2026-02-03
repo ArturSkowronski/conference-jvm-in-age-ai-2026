@@ -76,21 +76,21 @@ tasks.register("runBenchmarks") {
 
   doLast {
     // Run benchmarks sequentially to see results clearly
-    exec {
+    project.exec {
       commandLine("./gradlew", ":demos:llama3-java:run", "--no-daemon")
     }
-    exec {
+    project.exec {
       commandLine("./gradlew", ":demos:java-llama-cpp:run", "--no-daemon")
     }
-    exec {
+    project.exec {
       commandLine("./gradlew", ":demos:graalpy:runtimeCheck", "--no-daemon")
     }
-    exec {
+    project.exec {
       commandLine("./gradlew", ":demos:graalpy:llamaPython", "--no-daemon")
     }
 
     // Run GraalPy LLM (expected to fail) - don't fail the build
-    exec {
+    project.exec {
       commandLine("./gradlew", ":demos:graalpy:llama", "--no-daemon")
       isIgnoreExitValue = true
     }
