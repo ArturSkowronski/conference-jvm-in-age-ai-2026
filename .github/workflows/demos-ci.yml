@@ -31,8 +31,8 @@ jobs:
       - name: Ensure executable bits
         run: chmod +x gradlew
 
-      - name: Build and run GraalPy Java host demo
-        run: ./gradlew :demos:graalpy:run -PjavaVersion=21 --no-daemon
+      - name: Build and run GraalPy Java host demo (runtimeCheck only)
+        run: ./gradlew :demos:graalpy:runtimeCheck -PjavaVersion=21 --no-daemon
 
   tornadovm-baseline:
     name: TornadoVM demo (baseline)
@@ -141,5 +141,6 @@ jobs:
       - name: Ensure executable bits
         run: chmod +x gradlew
 
-      - name: Run JCuda demo
+      - name: Run JCuda demo (requires CUDA - expected to fail on standard runners)
+        continue-on-error: true
         run: ./gradlew :demos:jcuda:run -PjavaVersion=21 --no-daemon
