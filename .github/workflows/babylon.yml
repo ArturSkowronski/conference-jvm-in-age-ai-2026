@@ -1,6 +1,7 @@
 name: Babylon Demo
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'demos/babylon/**'
