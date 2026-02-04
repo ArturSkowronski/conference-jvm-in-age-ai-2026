@@ -41,7 +41,7 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 
 ## Demos
 
-### LLM Inference Demos (M1 Pro, hueristics)
+### LLM Inference Demos (M1 Pro / GPU Tesla T4 optimized, hueristics only)
 
 All demos use the same model: Llama 3.2 1B Instruct (FP16, ~2.5 GB)
 
