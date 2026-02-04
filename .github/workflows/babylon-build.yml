@@ -13,6 +13,9 @@ concurrency:
   group: babylon-build-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  BABYLON_JDK_PATH: /home/runner/babylon/build/release/images/jdk
+
 jobs:
   build-babylon-jdk:
     name: Build Babylon JDK
@@ -74,14 +77,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/babylon/build
-          key: babylon-build-${{ runner.os }}-${{ hashFiles('~/babylon/.git/refs/heads/code-reflection') }}
+          key: babylon-build-${{ runner.os }}-${{ hashFiles('.github/workflows/babylon-build.yml') }}
           restore-keys: |
             babylon-build-${{ runner.os }}-
 
       - name: Configure Babylon build
         run: |
           cd ~/babylon
-          if [ ! -f build/linux-x86_64-server-release/spec.gmk ]; then
+          if [ ! -f build/release/spec.gmk ]; then
             echo "Configuring Babylon JDK build..."
             bash configure \
               --with-boot-jdk=$JAVA_HOME \
@@ -103,7 +106,7 @@ jobs:
           echo "CPUs: $(nproc)"
           echo "========================================"
 
-          make images JOBS=$(nproc)
+          make images JOBS=$(nproc) CONF=release
 
           echo "========================================"
           echo "Build complete!"
@@ -111,21 +114,21 @@ jobs:
 
       - name: Verify Babylon JDK
         run: |
-          BABYLON_JDK=~/babylon/build/linux-x86_64-server-release/images/jdk
-          echo "Babylon JDK location: $BABYLON_JDK"
+          echo "Babylon JDK location: $BABYLON_JDK_PATH"
+          ls -la $BABYLON_JDK_PATH/bin/
 
-          $BABYLON_JDK/bin/java --version
+          $BABYLON_JDK_PATH/bin/java --version
 
           echo ""
           echo "Checking for Code Reflection module..."
-          $BABYLON_JDK/bin/java --list-modules | grep -E "jdk.incubator.code|java.lang.reflect.code" || echo "Module not in default list (expected - it's incubating)"
+          $BABYLON_JDK_PATH/bin/java --list-modules | grep -E "jdk.incubator.code|java.lang.reflect.code" || echo "Module not in default list (expected - it's incubating)"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run Babylon demo with built JDK
         env:
-          JAVA_HOME: /home/runner/babylon/build/linux-x86_64-server-release/images/jdk
+          JAVA_HOME: /home/runner/babylon/build/release/images/jdk
         run: |
           echo "========================================"
           echo "Running Babylon Demo with built JDK"
@@ -146,7 +149,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### JDK Version" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          ~/babylon/build/linux-x86_64-server-release/images/jdk/bin/java --version >> $GITHUB_STEP_SUMMARY
+          $BABYLON_JDK_PATH/bin/java --version >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Code Reflection Module" >> $GITHUB_STEP_SUMMARY
