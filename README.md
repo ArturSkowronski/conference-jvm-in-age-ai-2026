@@ -45,13 +45,13 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 
 All demos use the same model: Llama 3.2 1B Instruct (FP16, ~2.5 GB)
 
-| Demo | Technology | Performance | Command |
-|------|------------|-------------|---------|
-| **java-llama.cpp** | JNI + Metal/CUDA GPU | ~50 tok/s | `./gradlew :demos:java-llama-cpp:run` |
-| **Cyfra** | Scala + Vulkan GPU | ~33 tok/s | `./cyfra-demo/scripts/run-cyfra-llama.sh` |
-| **Llama3.java** | Pure Java Vector API | ~13 tok/s | `./gradlew :demos:llama3-java:run` |
-| **GraalPy (CPython)** | Python (CPython) | ~10 tok/s | `./gradlew :demos:graalpy:llamaPython` |
-| **TornadoVM** | Java + OpenCL GPU | ~6 tok/s | `./demos/tornadovm/scripts/run-gpullama3.sh` |
+| Demo | Technology | Command |
+|------|------------|---------|
+| **java-llama.cpp** | JNI + Metal/CUDA GPU | `./gradlew :demos:java-llama-cpp:run` |
+| **Cyfra** | Scala + Vulkan GPU | `./cyfra-demo/scripts/run-cyfra-llama.sh` |
+| **Llama3.java** | Pure Java Vector API | `./gradlew :demos:llama3-java:run` |
+| **GraalPy (CPython)** | Python (CPython) | `./gradlew :demos:graalpy:llamaPython` |
+| **TornadoVM** | Java + OpenCL GPU | `./demos/tornadovm/scripts/run-gpullama3.sh` |
 | **GraalPy (GraalPy)** | Python (GraalPy) | ❌ Fails | `./gradlew :demos:graalpy:llama` |
 
 ### GPU/Compute Demos
