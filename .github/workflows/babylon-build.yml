@@ -42,11 +42,11 @@ jobs:
             zip \
             unzip
 
-      - name: Set up Boot JDK (JDK 24)
+      - name: Set up Boot JDK (JDK 25)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '24'
+          java-version: '25'
 
       - name: Cache Babylon source
         id: cache-babylon-source
