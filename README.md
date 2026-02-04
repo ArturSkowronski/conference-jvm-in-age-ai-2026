@@ -35,7 +35,7 @@ This repository contains demos, benchmarks, and documentation from the "JVM in t
 # Run all smoke tests (quick validation)
 ./gradlew runSmokeTests
 
-# Run all LLM inference benchmarks
+# Run all LLM inference runs
 ./gradlew runBenchmarks
 ```
 
