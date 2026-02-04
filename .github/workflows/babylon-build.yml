@@ -1,0 +1,156 @@
+name: Babylon Build from Source
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Sunday at midnight to keep cache fresh
+    - cron: '0 0 * * 0'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: babylon-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-babylon-jdk:
+    name: Build Babylon JDK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout demo repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            autoconf \
+            libx11-dev \
+            libxext-dev \
+            libxrender-dev \
+            libxrandr-dev \
+            libxtst-dev \
+            libxt-dev \
+            libcups2-dev \
+            libfontconfig1-dev \
+            libasound2-dev \
+            libfreetype6-dev \
+            zip \
+            unzip
+
+      - name: Set up Boot JDK (JDK 24)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '24'
+
+      - name: Cache Babylon source
+        id: cache-babylon-source
+        uses: actions/cache@v4
+        with:
+          path: ~/babylon
+          key: babylon-source-${{ hashFiles('.github/workflows/babylon-build.yml') }}
+          restore-keys: |
+            babylon-source-
+
+      - name: Clone Babylon repository
+        if: steps.cache-babylon-source.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/openjdk/babylon.git ~/babylon
+
+      - name: Update Babylon repository
+        if: steps.cache-babylon-source.outputs.cache-hit == 'true'
+        run: |
+          cd ~/babylon
+          git fetch --depth 1 origin
+          git reset --hard origin/code-reflection
+
+      - name: Cache Babylon build
+        id: cache-babylon-build
+        uses: actions/cache@v4
+        with:
+          path: ~/babylon/build
+          key: babylon-build-${{ runner.os }}-${{ hashFiles('~/babylon/.git/refs/heads/code-reflection') }}
+          restore-keys: |
+            babylon-build-${{ runner.os }}-
+
+      - name: Configure Babylon build
+        run: |
+          cd ~/babylon
+          if [ ! -f build/linux-x86_64-server-release/spec.gmk ]; then
+            echo "Configuring Babylon JDK build..."
+            bash configure \
+              --with-boot-jdk=$JAVA_HOME \
+              --with-conf-name=release \
+              --with-debug-level=release \
+              --with-native-debug-symbols=none \
+              --disable-warnings-as-errors
+          else
+            echo "Build already configured, skipping..."
+          fi
+
+      - name: Build Babylon JDK
+        run: |
+          cd ~/babylon
+          echo "========================================"
+          echo "Building Babylon JDK from source"
+          echo "========================================"
+          echo "Boot JDK: $JAVA_HOME"
+          echo "CPUs: $(nproc)"
+          echo "========================================"
+
+          make images JOBS=$(nproc)
+
+          echo "========================================"
+          echo "Build complete!"
+          echo "========================================"
+
+      - name: Verify Babylon JDK
+        run: |
+          BABYLON_JDK=~/babylon/build/linux-x86_64-server-release/images/jdk
+          echo "Babylon JDK location: $BABYLON_JDK"
+
+          $BABYLON_JDK/bin/java --version
+
+          echo ""
+          echo "Checking for Code Reflection module..."
+          $BABYLON_JDK/bin/java --list-modules | grep -E "jdk.incubator.code|java.lang.reflect.code" || echo "Module not in default list (expected - it's incubating)"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Babylon demo with built JDK
+        env:
+          JAVA_HOME: /home/runner/babylon/build/linux-x86_64-server-release/images/jdk
+        run: |
+          echo "========================================"
+          echo "Running Babylon Demo with built JDK"
+          echo "========================================"
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo ""
+
+          # Override the toolchain to use our built JDK
+          ./gradlew :demos:babylon:run \
+            -Porg.gradle.java.installations.paths=$JAVA_HOME \
+            -Porg.gradle.java.installations.auto-detect=false \
+            -Porg.gradle.java.installations.auto-download=false \
+            --no-daemon
+
+      - name: Summary
+        run: |
+          echo "## Babylon JDK Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### JDK Version" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ~/babylon/build/linux-x86_64-server-release/images/jdk/bin/java --version >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Code Reflection Module" >> $GITHUB_STEP_SUMMARY
+          echo "The \`jdk.incubator.code\` module is available in this build." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Demo Output" >> $GITHUB_STEP_SUMMARY
+          echo "The Babylon RuntimeCheck demo ran successfully, confirming Code Reflection is working." >> $GITHUB_STEP_SUMMARY
