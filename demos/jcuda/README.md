@@ -89,3 +89,4 @@ demos/jcuda/
 - **[Findings.md](Findings.md)** - JCuda vs CUDA vs alternatives
 - **`demos/tensorflow-ffm/`** - FFM instead of JNI
 - **`demos/tornadovm/`** - Cross-platform GPU (OpenCL/CUDA)
+

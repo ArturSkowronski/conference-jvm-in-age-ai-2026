@@ -90,3 +90,4 @@ demos/java-llama-cpp/
 - **`demos/llama3-java/`** - Pure Java LLM (✅ ~13 tok/s, no GPU)
 - **`demos/tensorflow-ffm/`** - FFM instead of JNI
 - **`demos/graalpy/`** - Python embedding (CPython works, GraalPy fails)
+

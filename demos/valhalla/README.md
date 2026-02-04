@@ -85,3 +85,4 @@ demos/valhalla/
 - **[FINDINGS.md](FINDINGS.md)** - Float16 and Vector API research (comprehensive)
 - **`demos/llama3-java/`** - Vector API in production (LLM inference)
 - **`demos/tensorflow-ffm/`** - FFM for native SIMD libraries
+

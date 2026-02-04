@@ -171,3 +171,4 @@ For comprehensive technical analysis, see **[Findings.md](Findings.md)**:
 - **`demos/java-llama-cpp/`** - JNI bindings (✅ ~50 tok/s)
 - **`demos/llama3-java/`** - Pure Java (✅ ~13 tok/s)
 - **`demos/tornadovm/`** - GPU acceleration (✅ ~6 tok/s)
+

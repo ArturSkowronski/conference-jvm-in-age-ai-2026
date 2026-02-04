@@ -109,3 +109,4 @@ demos/llama3-java/
 - **`demos/java-llama-cpp/`** - JNI with GPU (~50 tok/s)
 - **`demos/graalpy/`** - Python comparison
 - **`demos/tensorflow-ffm/`** - FFM example
+

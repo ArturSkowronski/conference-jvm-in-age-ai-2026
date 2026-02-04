@@ -146,3 +146,4 @@ demos/babylon/
 - **`demos/tornadovm/`** - Alternative GPU approach (TornadoVM)
 - **`demos/jcuda/`** - Direct CUDA bindings
 - **`demos/valhalla/`** - Vector API research
+

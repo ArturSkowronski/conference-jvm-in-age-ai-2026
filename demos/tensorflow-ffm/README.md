@@ -103,3 +103,4 @@ Topics covered:
 - **[Findings.md](Findings.md)** - FFM technical analysis
 - **`demos/jcuda/`** - JCuda CUDA bindings (also uses FFM-like approach)
 - **`demos/llama3-java/`** - Pure Java LLM (no FFM needed)
+
