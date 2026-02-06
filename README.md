@@ -26,6 +26,7 @@
 [![TornadoVM](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tornadovm.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tornadovm.yml)
 
 **Just sanity checks for now**
+
 [![GraalPy Demo](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml)
 [![Babylon](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/babylon.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/babylon.yml)
 
