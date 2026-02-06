@@ -17,7 +17,7 @@
 ---
 
 ## Build Status
-
+[![GraalPy Demo](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml)
 [![TensorFlow FFM](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tensorflow-ffm.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tensorflow-ffm.yml)
 [![java-llama.cpp](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/java-llama-cpp.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/java-llama-cpp.yml)
 [![JCuda](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/jcuda.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/jcuda.yml)
@@ -25,9 +25,8 @@
 [![Valhalla](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/valhalla.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/valhalla.yml)
 [![TornadoVM](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tornadovm.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/tornadovm.yml)
 
-**Just sanity checks for now**
+**Build Status - WIP**
 
-[![GraalPy Demo](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/graalpy-demo.yml)
 [![Babylon](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/babylon.yml/badge.svg)](https://github.com/ArturSkowronski/conference-jvm-in-age-ai-2026/actions/workflows/babylon.yml)
 
 This repository contains demos, benchmarks, and documentation from the "JVM in the Age of AI" conference talk (JFokus 2026). All demos are functional and can be run on your own hardware.
