@@ -36,9 +36,9 @@ jobs:
           path: |
             babylon/build/linux-x86_64-server-release/images/jdk
             babylon/hat/build
-          key: ${{ runner.os }}-babylon-hat-${{ hashFiles('babylon/.git/refs/heads/code-reflection') }}
+          key: ${{ runner.os }}-babylon-hat-v2-${{ hashFiles('.github/workflows/babylon.yml') }}
           restore-keys: |
-            ${{ runner.os }}-babylon-hat-
+            ${{ runner.os }}-babylon-hat-v2-
 
       - name: Install Build Dependencies
         if: steps.cache-babylon.outputs.cache-hit != 'true'
@@ -217,6 +217,7 @@ jobs:
 
       - name: Run HAT MatMul
         run: |
+          set -e
           export PATH=$JAVA_HOME/bin:$PATH
           echo "========================================"
           echo "Running HAT MatMul with OpenCL"
@@ -225,14 +226,21 @@ jobs:
           java --version
           echo ""
 
-          cd babylon/hat
+          HAT_BUILD=${{ env.HAT_BUILD }}
+          echo "HAT_BUILD: $HAT_BUILD"
+          echo "Native libraries:"
+          ls -la $HAT_BUILD/*.so 2>/dev/null || echo "No .so files found"
 
-          # Run MatMul with OpenCL backend
-          # Using smaller matrix for CI (256x256 instead of 1024x1024)
-          java @hat/run ffi-opencl matmul 2DTILING 256
+          # Run MatMul directly with proper classpath
+          java --enable-preview \
+            --add-modules=jdk.incubator.code \
+            --enable-native-access=ALL-UNNAMED \
+            --class-path "$HAT_BUILD/hat-core-1.0.jar:$HAT_BUILD/hat-backend-ffi-shared-1.0.jar:$HAT_BUILD/hat-backend-ffi-opencl-1.0.jar:$HAT_BUILD/hat-example-matmul-1.0.jar:$HAT_BUILD/hat-optkl-1.0.jar" \
+            -Djava.library.path=$HAT_BUILD \
+            matmul.Main 2DTILING 256
 
       - name: Summary
-        if: always()
+        if: success()
         run: |
           echo "## HAT MatMul Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
