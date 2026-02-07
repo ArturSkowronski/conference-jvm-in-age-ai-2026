@@ -47,6 +47,7 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             autoconf \
+            cmake \
             libx11-dev \
             libxext-dev \
             libxrender-dev \
@@ -57,6 +58,8 @@ jobs:
             libfontconfig1-dev \
             libasound2-dev \
             libfreetype6-dev \
+            ocl-icd-opencl-dev \
+            pocl-opencl-icd \
             zip \
             unzip
 
@@ -82,7 +85,21 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           echo "Building HAT with JAVA_HOME=$JAVA_HOME"
           java --version
+
+          # Build HAT Java components
           java @hat/bld
+
+          # Build HAT native OpenCL backend
+          echo "Building HAT native OpenCL backend..."
+          mkdir -p build/cmake-opencl
+          cd build/cmake-opencl
+          cmake ../../hat/backends/ffi/opencl -DJAVA_HOME=$JAVA_HOME
+          make -j$(nproc)
+          cp *.so ../
+          cd ../..
+
+          echo "HAT build contents:"
+          ls -la build/
 
       - name: Upload Babylon JDK + HAT Artifact
         uses: actions/upload-artifact@v4
