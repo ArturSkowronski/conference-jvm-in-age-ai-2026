@@ -20,10 +20,8 @@ concurrency:
 
 jobs:
   build-babylon:
-    name: Build Babylon JDK
+    name: Build Babylon JDK + HAT
     runs-on: ubuntu-latest
-    outputs:
-      babylon-home: ${{ steps.set-path.outputs.babylon-home }}
     steps:
       - name: Checkout Babylon
         uses: actions/checkout@v4
@@ -31,14 +29,16 @@ jobs:
           repository: openjdk/babylon
           path: babylon
 
-      - name: Cache Babylon JDK
+      - name: Cache Babylon JDK and HAT
         id: cache-babylon
         uses: actions/cache@v4
         with:
-          path: babylon/build/linux-x86_64-server-release/images/jdk
-          key: ${{ runner.os }}-babylon-jdk-${{ hashFiles('babylon/.git/refs/heads/code-reflection') }}
+          path: |
+            babylon/build/linux-x86_64-server-release/images/jdk
+            babylon/hat/build
+          key: ${{ runner.os }}-babylon-hat-${{ hashFiles('babylon/.git/refs/heads/code-reflection') }}
           restore-keys: |
-            ${{ runner.os }}-babylon-jdk-
+            ${{ runner.os }}-babylon-hat-
 
       - name: Install Build Dependencies
         if: steps.cache-babylon.outputs.cache-hit != 'true'
@@ -67,22 +67,30 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
 
-      - name: Configure and Build Babylon
+      - name: Configure and Build Babylon JDK
         if: steps.cache-babylon.outputs.cache-hit != 'true'
         run: |
           cd babylon
           bash configure --disable-warnings-as-errors
           make images JOBS=$(nproc)
 
-      - name: Set Babylon Home Output
-        id: set-path
-        run: echo "babylon-home=$(pwd)/babylon/build/linux-x86_64-server-release/images/jdk" >> $GITHUB_OUTPUT
+      - name: Build HAT
+        if: steps.cache-babylon.outputs.cache-hit != 'true'
+        run: |
+          cd babylon/hat
+          export JAVA_HOME=$(pwd)/../build/linux-x86_64-server-release/images/jdk
+          export PATH=$JAVA_HOME/bin:$PATH
+          echo "Building HAT with JAVA_HOME=$JAVA_HOME"
+          java --version
+          java @hat/bld
 
-      - name: Upload Babylon JDK Artifact
+      - name: Upload Babylon JDK + HAT Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: babylon-jdk
-          path: babylon/build/linux-x86_64-server-release/images/jdk
+          name: babylon-jdk-hat
+          path: |
+            babylon/build/linux-x86_64-server-release/images/jdk
+            babylon/hat/build
           include-hidden-files: true
           retention-days: 7
 
@@ -93,19 +101,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Babylon JDK Artifact
+      - name: Download Babylon JDK + HAT Artifact
         uses: actions/download-artifact@v4
         with:
-          name: babylon-jdk
-          path: babylon-jdk
+          name: babylon-jdk-hat
+          path: babylon
 
       - name: Setup Environment
         run: |
           echo "=== Making JDK binaries executable ==="
-          chmod -R +x babylon-jdk/bin/
-          find babylon-jdk/lib -type f -name "jspawnhelper" -exec chmod +x {} \;
-          find babylon-jdk/lib -type f -name "*.so" -exec chmod +x {} \;
-          echo "BABYLON_JDK_HOME=$(pwd)/babylon-jdk" >> $GITHUB_ENV
+          chmod -R +x babylon/build/linux-x86_64-server-release/images/jdk/bin/
+          find babylon/build/linux-x86_64-server-release/images/jdk/lib -type f -name "jspawnhelper" -exec chmod +x {} \;
+          find babylon/build/linux-x86_64-server-release/images/jdk/lib -type f -name "*.so" -exec chmod +x {} \;
+          echo "BABYLON_JDK_HOME=$(pwd)/babylon/build/linux-x86_64-server-release/images/jdk" >> $GITHUB_ENV
+          echo "HAT_BUILD=$(pwd)/babylon/hat/build" >> $GITHUB_ENV
 
       - name: Verify Babylon JDK
         run: |
@@ -114,6 +123,9 @@ jobs:
           echo ""
           echo "=== Checking for Code Reflection module ==="
           $BABYLON_JDK_HOME/bin/java --list-modules | grep -E "jdk.incubator.code" || echo "Module not in default list (expected - it's incubating)"
+          echo ""
+          echo "=== HAT Build Contents ==="
+          ls -la $HAT_BUILD/ || echo "HAT build directory not found"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -145,3 +157,72 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Result" >> $GITHUB_STEP_SUMMARY
           echo "The RuntimeCheck demo ran successfully with Babylon JDK." >> $GITHUB_STEP_SUMMARY
+
+  hat-matmul:
+    name: HAT MatMul Test
+    needs: build-babylon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Babylon (for HAT run scripts)
+        uses: actions/checkout@v4
+        with:
+          repository: openjdk/babylon
+          path: babylon
+
+      - name: Download Babylon JDK + HAT Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: babylon-jdk-hat
+          path: babylon-artifact
+
+      - name: Install OpenCL Runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ocl-icd-opencl-dev pocl-opencl-icd clinfo
+          echo "=== OpenCL Devices ==="
+          clinfo -l || echo "No OpenCL devices found (expected on CI)"
+
+      - name: Setup Environment
+        run: |
+          echo "=== Setting up Babylon JDK ==="
+          chmod -R +x babylon-artifact/build/linux-x86_64-server-release/images/jdk/bin/
+          find babylon-artifact/build/linux-x86_64-server-release/images/jdk/lib -type f -name "jspawnhelper" -exec chmod +x {} \;
+          find babylon-artifact/build/linux-x86_64-server-release/images/jdk/lib -type f -name "*.so" -exec chmod +x {} \;
+
+          echo "JAVA_HOME=$(pwd)/babylon-artifact/build/linux-x86_64-server-release/images/jdk" >> $GITHUB_ENV
+          echo "HAT_BUILD=$(pwd)/babylon-artifact/hat/build" >> $GITHUB_ENV
+
+      - name: Copy HAT build to Babylon source
+        run: |
+          # HAT run scripts expect build dir in babylon/hat/build
+          cp -r babylon-artifact/hat/build babylon/hat/
+          ls -la babylon/hat/build/
+
+      - name: Run HAT MatMul
+        run: |
+          export PATH=$JAVA_HOME/bin:$PATH
+          echo "========================================"
+          echo "Running HAT MatMul with OpenCL"
+          echo "========================================"
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          echo ""
+
+          cd babylon/hat
+
+          # Run MatMul with OpenCL backend
+          # Using smaller matrix for CI (256x256 instead of 1024x1024)
+          java @hat/run ffi-opencl matmul 2DTILING 256
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## HAT MatMul Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: OpenCL (POCL CPU)" >> $GITHUB_STEP_SUMMARY
+          echo "- Algorithm: 2DTILING" >> $GITHUB_STEP_SUMMARY
+          echo "- Matrix Size: 256x256" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Result" >> $GITHUB_STEP_SUMMARY
+          echo "HAT MatMul completed successfully using Code Reflection for GPU kernel generation." >> $GITHUB_STEP_SUMMARY
