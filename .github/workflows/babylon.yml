@@ -89,11 +89,20 @@ jobs:
           # Build HAT Java components
           java @hat/bld
 
+          # Build HAT native shared backend first
+          echo "Building HAT native shared backend..."
+          mkdir -p build/cmake-shared
+          cd build/cmake-shared
+          cmake ../../backends/ffi/shared
+          make -j$(nproc)
+          cp *.so ../
+          cd ../..
+
           # Build HAT native OpenCL backend
           echo "Building HAT native OpenCL backend..."
           mkdir -p build/cmake-opencl
           cd build/cmake-opencl
-          cmake ../../backends/ffi/opencl -DJAVA_HOME=$JAVA_HOME
+          cmake ../../backends/ffi/opencl -DCMAKE_LIBRARY_PATH=$(pwd)/../
           make -j$(nproc)
           cp *.so ../
           cd ../..
