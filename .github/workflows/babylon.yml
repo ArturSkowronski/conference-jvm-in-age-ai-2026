@@ -102,7 +102,10 @@ jobs:
           echo "Building HAT native OpenCL backend..."
           mkdir -p build/cmake-opencl
           cd build/cmake-opencl
-          cmake ../../backends/ffi/opencl -DCMAKE_LIBRARY_PATH=$(pwd)/../
+          # Add library path for shared_backend
+          export LIBRARY_PATH=$(pwd)/../:$LIBRARY_PATH
+          export LD_LIBRARY_PATH=$(pwd)/../:$LD_LIBRARY_PATH
+          cmake ../../backends/ffi/opencl -DCMAKE_EXE_LINKER_FLAGS="-L$(pwd)/../" -DCMAKE_SHARED_LINKER_FLAGS="-L$(pwd)/../"
           make -j$(nproc)
           cp *.so ../
           cd ../..
