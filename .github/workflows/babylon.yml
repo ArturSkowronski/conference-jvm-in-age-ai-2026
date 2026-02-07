@@ -93,13 +93,15 @@ jobs:
           echo "Building HAT native OpenCL backend..."
           mkdir -p build/cmake-opencl
           cd build/cmake-opencl
-          cmake ../../hat/backends/ffi/opencl -DJAVA_HOME=$JAVA_HOME
+          cmake ../../backends/ffi/opencl -DJAVA_HOME=$JAVA_HOME
           make -j$(nproc)
           cp *.so ../
           cd ../..
 
           echo "HAT build contents:"
           ls -la build/
+          echo "Native libraries:"
+          ls -la build/*.so 2>/dev/null || echo "No .so files"
 
       - name: Upload Babylon JDK + HAT Artifact
         uses: actions/upload-artifact@v4
