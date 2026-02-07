@@ -69,26 +69,52 @@ Code Reflection Module Present: false ⚠️
 
 ## Setup
 
-**If you have Babylon JDK installed:**
+### Option 1: Use SDKMAN (if Babylon JDK installed)
+
 ```bash
 cd demos/babylon
 sdk env install && sdk env
 ```
 
-**If you don't have Babylon JDK:**
+### Option 2: Download Pre-built JDK
+
+Download from: https://jdk.java.net/babylon/
+
+### Option 3: Build from Source
+
 ```bash
-# Download from:
-https://jdk.java.net/babylon/
-
-# Or build from source:
-git clone --branch code-reflection https://github.com/openjdk/babylon.git
+# Clone and build Babylon JDK
+git clone https://github.com/openjdk/babylon.git
 cd babylon
-bash configure && make images
+bash configure --disable-warnings-as-errors
+make images JOBS=$(nproc)
 
-# Build HAT framework:
-cd hat
+# JDK will be at: babylon/build/linux-x86_64-server-release/images/jdk
+# (or macosx-aarch64-server-release on macOS ARM)
+
+# Set JAVA_HOME
+export JAVA_HOME=$(pwd)/build/linux-x86_64-server-release/images/jdk
+export PATH=$JAVA_HOME/bin:$PATH
+
+# Verify
+java --version  # Should show Java 26+
+```
+
+### Building HAT Framework (Optional)
+
+```bash
+cd babylon/hat
 java @hat/bld
 ```
+
+## CI/CD
+
+The GitHub Actions workflow automatically:
+1. Builds Babylon JDK from source (~17 minutes)
+2. Caches the built JDK for subsequent runs
+3. Runs the RuntimeCheck demo to verify Code Reflection works
+
+See `.github/workflows/babylon.yml` for details.
 
 ## Running
 
