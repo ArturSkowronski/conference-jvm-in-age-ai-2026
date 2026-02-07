@@ -86,29 +86,13 @@ jobs:
           echo "Building HAT with JAVA_HOME=$JAVA_HOME"
           java --version
 
-          # Build HAT Java components
-          java @hat/bld
+          # Bootstrap HAT build system (this builds native components)
+          echo "Bootstrapping HAT..."
+          bash hat/bootstrap.bash
 
-          # Build HAT native shared backend first
-          echo "Building HAT native shared backend..."
-          mkdir -p build/cmake-shared
-          cd build/cmake-shared
-          cmake ../../backends/ffi/shared
-          make -j$(nproc)
-          cp *.so ../
-          cd ../..
-
-          # Build HAT native OpenCL backend
-          echo "Building HAT native OpenCL backend..."
-          mkdir -p build/cmake-opencl
-          cd build/cmake-opencl
-          # Add library path for shared_backend
-          export LIBRARY_PATH=$(pwd)/../:$LIBRARY_PATH
-          export LD_LIBRARY_PATH=$(pwd)/../:$LD_LIBRARY_PATH
-          cmake ../../backends/ffi/opencl -DCMAKE_EXE_LINKER_FLAGS="-L$(pwd)/../" -DCMAKE_SHARED_LINKER_FLAGS="-L$(pwd)/../"
-          make -j$(nproc)
-          cp *.so ../
-          cd ../..
+          # Build HAT using the proper build system
+          echo "Building HAT..."
+          java -cp hat/job.jar --enable-preview --source 26 hat.java bld
 
           echo "HAT build contents:"
           ls -la build/
