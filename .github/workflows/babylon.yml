@@ -36,7 +36,7 @@ jobs:
           path: |
             babylon/build/linux-x86_64-server-release/images/jdk
             babylon/hat/build
-          key: ${{ runner.os }}-babylon-hat-v2-${{ hashFiles('.github/workflows/babylon.yml') }}
+          key: ${{ runner.os }}-babylon-hat-v3-${{ hashFiles('.github/workflows/babylon.yml') }}
           restore-keys: |
             ${{ runner.os }}-babylon-hat-v2-
 
