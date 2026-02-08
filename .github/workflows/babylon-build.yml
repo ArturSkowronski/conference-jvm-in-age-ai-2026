@@ -64,6 +64,10 @@ jobs:
       - name: Clone Babylon repository
         if: steps.cache-babylon-source.outputs.cache-hit != 'true'
         run: |
+          if [ -d ~/babylon ]; then
+            echo "Directory ~/babylon already exists, removing it..."
+            rm -rf ~/babylon
+          fi
           git clone --depth 1 https://github.com/openjdk/babylon.git ~/babylon
 
       - name: Update Babylon repository
