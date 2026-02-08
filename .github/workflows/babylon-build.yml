@@ -56,8 +56,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/babylon
-          key: babylon-source-${{ hashFiles('.github/workflows/babylon-build.yml') }}
+          key: babylon-source-${{ hashFiles('.github/workflows/babylon-build.yml') }}-${{ github.sha }}
           restore-keys: |
+            babylon-source-${{ hashFiles('.github/workflows/babylon-build.yml') }}-
             babylon-source-
 
       - name: Clone Babylon repository
@@ -77,14 +78,23 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/babylon/build
-          key: babylon-build-${{ runner.os }}-${{ hashFiles('.github/workflows/babylon-build.yml') }}
+          key: babylon-build-${{ runner.os }}-${{ hashFiles('.github/workflows/babylon-build.yml') }}-${{ hashFiles('~/babylon/.git/HEAD') }}
           restore-keys: |
+            babylon-build-${{ runner.os }}-${{ hashFiles('.github/workflows/babylon-build.yml') }}-
             babylon-build-${{ runner.os }}-
 
       - name: Configure Babylon build
         run: |
           cd ~/babylon
-          if [ ! -f build/release/spec.gmk ]; then
+          if [ -f build/release/spec.gmk ]; then
+            echo "Build already configured, checking if update is needed..."
+            if ! make JOBS=$(nproc) CONF=release check-conf > /dev/null 2>&1; then
+              echo "Configuration is out of date, reconfiguring..."
+              make reconfigure JOBS=$(nproc) CONF=release
+            else
+              echo "Configuration is up to date."
+            fi
+          else
             echo "Configuring Babylon JDK build..."
             bash configure \
               --with-boot-jdk=$JAVA_HOME \
@@ -92,11 +102,11 @@ jobs:
               --with-debug-level=release \
               --with-native-debug-symbols=none \
               --disable-warnings-as-errors
-          else
-            echo "Build already configured, skipping..."
           fi
 
       - name: Build Babylon JDK
+        id: build-jdk
+        continue-on-error: true
         run: |
           cd ~/babylon
           echo "========================================"
@@ -108,6 +118,16 @@ jobs:
 
           make images JOBS=$(nproc) CONF=release
 
+      - name: Retry Build if failed
+        if: steps.build-jdk.outcome == 'failure'
+        run: |
+          cd ~/babylon
+          echo "Build failed, attempting reconfigure and retry..."
+          make reconfigure JOBS=$(nproc) CONF=release
+          make images JOBS=$(nproc) CONF=release
+
+      - name: Build success confirmation
+        run: |
           echo "========================================"
           echo "Build complete!"
           echo "========================================"
