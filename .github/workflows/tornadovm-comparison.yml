@@ -360,14 +360,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
-          key: llama-3.2-1b-instruct-f16-gguf
+          key: llama-3.2-1b-instruct-f16-gguf-v2
 
       - name: Download Llama 3.2 1B Instruct FP16
         if: steps.cache-llama.outputs.cache-hit != 'true'
         run: |
           mkdir -p ~/.llama/models
-          curl -L -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+          curl -fL --retry 3 -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
             "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+
+      - name: Validate model file
+        run: |
+          MODEL=~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
+          SIZE=$(stat -c%s "$MODEL" 2>/dev/null || stat -f%z "$MODEL")
+          MAGIC=$(xxd -l 4 -p "$MODEL")
+          echo "Model size: ${SIZE} bytes, magic: ${MAGIC}"
+          if [ "$SIZE" -lt 1000000000 ]; then
+            echo "ERROR: Model file too small (${SIZE} bytes), likely corrupted"
+            rm -f "$MODEL"
+            exit 1
+          fi
 
       - name: Clone and build GPULlama3.java
         run: |
