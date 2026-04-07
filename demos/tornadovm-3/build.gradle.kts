@@ -1,0 +1,43 @@
+plugins {
+  application
+  java
+}
+
+repositories {
+  mavenCentral()
+}
+
+// Note: TornadoVM 3.0 requires JDK 25
+// This build provides baseline (CPU) demo only
+// For TornadoVM GPU demo, use scripts/run-tornado.sh
+// For GPU LLM inference, use scripts/run-gpullama3.sh
+
+dependencies {
+  // TornadoVM dependencies would go here if running GPU version
+  // For baseline demo, no dependencies needed
+}
+
+application {
+  mainClass.set("com.skowronski.talk.jvmai.VectorAddBaseline")
+}
+
+// Runtime check demo - runs on any JDK (CPU only)
+tasks.register<JavaExec>("runtimeCheck") {
+  group = "application"
+  description = "Run baseline vector add (CPU, no TornadoVM)"
+
+  classpath = sourceSets.main.get().runtimeClasspath
+  mainClass.set("com.skowronski.talk.jvmai.VectorAddBaseline")
+  args = listOf("--size", "10000000", "--iters", "5")
+}
+
+// Alias 'run' to 'runtimeCheck'
+tasks.named<JavaExec>("run") {
+  args = listOf("--size", "10000000", "--iters", "5")
+}
+
+// Note: TornadoVM 3.0 GPU demo requires:
+// 1. TornadoVM 3.0.0-jdk25 SDK installed
+// 2. OpenCL/Metal/CUDA drivers
+// 3. Use: ./scripts/run-tornado.sh
+// 4. Or: ./scripts/run-gpullama3.sh for LLM demo
