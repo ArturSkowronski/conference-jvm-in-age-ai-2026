@@ -1,0 +1,464 @@
+name: TornadoVM Version Comparison
+
+on:
+  push:
+    paths:
+      - 'demos/tornadovm/**'
+      - 'demos/tornadovm-3/**'
+      - 'demos/tornadovm-4/**'
+      - '.github/workflows/tornadovm-comparison.yml'
+  pull_request:
+    paths:
+      - 'demos/tornadovm/**'
+      - 'demos/tornadovm-3/**'
+      - 'demos/tornadovm-4/**'
+      - '.github/workflows/tornadovm-comparison.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tornadovm-comparison-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VECTOR_SIZE: "1000000"
+  VECTOR_ITERS: "5"
+  JVMCI_CONFIG_CHECK: "ignore"
+
+jobs:
+  # ── TornadoVM 2.2.0 (JDK 21 + OpenCL) ──────────────────────────────
+  tornadovm-220:
+    name: TornadoVM 2.2.0 (JDK 21 / OpenCL)
+    runs-on: ubuntu-latest
+    env:
+      TORNADOVM_VERSION: "2.2.0"
+      TORNADOVM_BACKEND: "opencl"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install OpenCL CPU Runtime (Intel oneAPI)
+        run: |
+          wget -q https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -O /tmp/intel-gpg.pub
+          sudo gpg --yes --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg /tmp/intel-gpg.pub
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install -y intel-oneapi-runtime-opencl ocl-icd-libopencl1 clinfo
+          echo "--- OpenCL devices ---"
+          clinfo --list || true
+
+      - name: Download TornadoVM 2.2.0 SDK
+        run: |
+          filename="tornadovm-${TORNADOVM_VERSION}-${TORNADOVM_BACKEND}-linux-amd64.tar.gz"
+          url="https://github.com/beehive-lab/TornadoVM/releases/download/v${TORNADOVM_VERSION}/${filename}"
+          echo "Downloading: ${url}"
+          curl -fL "${url}" -o "/tmp/${filename}"
+          mkdir -p "${RUNNER_TEMP}/tornadovm"
+          tar -xzf "/tmp/${filename}" -C "${RUNNER_TEMP}/tornadovm"
+          TORNADO_SDK="$(find "${RUNNER_TEMP}/tornadovm" -maxdepth 1 -type d -name 'tornadovm-*' -print -quit)"
+          echo "TORNADOVM_HOME=${TORNADO_SDK}" >> "${GITHUB_ENV}"
+          echo "Installed: ${TORNADO_SDK}"
+
+      - name: Compile VectorAdd demo
+        run: |
+          build_dir="build/tornado-ci-220"
+          src_dir="demos/tornadovm/src/tornado/java"
+          mkdir -p "${build_dir}/mods"
+          find "${src_dir}" -name "*.java" > "${build_dir}/sources.txt"
+          tornado_jars="$(find "${TORNADOVM_HOME}" -name '*.jar' -print0 | tr '\0' ':')"
+          javac --enable-preview --release 21 \
+                --module-path "${tornado_jars}" \
+                -d "${build_dir}/mods/demo.tornadovm" \
+                @"${build_dir}/sources.txt"
+          echo "BUILD_DIR=${build_dir}" >> "${GITHUB_ENV}"
+
+      - name: Run VectorAdd benchmark
+        continue-on-error: true
+        run: |
+          tornado_jars="$(find "${TORNADOVM_HOME}" -name '*.jar' -print0 | tr '\0' ':')"
+          java --enable-preview \
+               --module-path "${tornado_jars}:${BUILD_DIR}/mods" \
+               --add-modules ALL-MODULE-PATH \
+               -m demo.tornadovm/demo.tornadovm.VectorAddTornado \
+               --size ${VECTOR_SIZE} --iters ${VECTOR_ITERS} --warmup 2 \
+            | tee /tmp/result-220.txt
+
+      - name: Run CPU baseline
+        run: |
+          chmod +x demos/tornadovm/scripts/run-baseline.sh
+          demos/tornadovm/scripts/run-baseline.sh \
+            --size ${VECTOR_SIZE} --iters ${VECTOR_ITERS} --warmup 2 \
+            | tee /tmp/baseline-220.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-220
+          path: /tmp/result-220.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-220
+          path: /tmp/baseline-220.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ── TornadoVM 3.0.0 (JDK 25 + OpenCL) ──────────────────────────────
+  tornadovm-300:
+    name: TornadoVM 3.0.0 (JDK 25 / OpenCL)
+    runs-on: ubuntu-latest
+    env:
+      TORNADOVM_VERSION: "3.0.0"
+      TORNADOVM_JDK: "jdk25"
+      TORNADOVM_BACKEND: "opencl"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Install OpenCL CPU Runtime (Intel oneAPI)
+        run: |
+          wget -q https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -O /tmp/intel-gpg.pub
+          sudo gpg --yes --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg /tmp/intel-gpg.pub
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install -y intel-oneapi-runtime-opencl ocl-icd-libopencl1 clinfo
+          echo "--- OpenCL devices ---"
+          clinfo --list || true
+
+      - name: Download TornadoVM 3.0.0 SDK
+        run: |
+          filename="tornadovm-${TORNADOVM_VERSION}-${TORNADOVM_JDK}-${TORNADOVM_BACKEND}-linux-amd64.zip"
+          url="https://github.com/beehive-lab/TornadoVM/releases/download/v${TORNADOVM_VERSION}-${TORNADOVM_JDK}/${filename}"
+          echo "Downloading: ${url}"
+          curl -fL "${url}" -o "/tmp/${filename}"
+          mkdir -p "${RUNNER_TEMP}/tornadovm"
+          unzip -q "/tmp/${filename}" -d "${RUNNER_TEMP}/tornadovm"
+          TORNADO_SDK="$(find "${RUNNER_TEMP}/tornadovm" -maxdepth 1 -type d -name 'tornadovm-*' -print -quit)"
+          echo "TORNADOVM_HOME=${TORNADO_SDK}" >> "${GITHUB_ENV}"
+          echo "Installed: ${TORNADO_SDK}"
+
+      - name: Compile VectorAdd demo
+        run: |
+          build_dir="build/tornado-ci-300"
+          src_dir="demos/tornadovm-3/src/tornado/java"
+          mkdir -p "${build_dir}/mods"
+          find "${src_dir}" -name "*.java" > "${build_dir}/sources.txt"
+          tornado_jars="$(find "${TORNADOVM_HOME}" -name '*.jar' -print0 | tr '\0' ':')"
+          javac --enable-preview --release 25 \
+                --module-path "${tornado_jars}" \
+                -d "${build_dir}/mods/demo.tornadovm" \
+                @"${build_dir}/sources.txt"
+          echo "BUILD_DIR=${build_dir}" >> "${GITHUB_ENV}"
+
+      - name: Run VectorAdd benchmark
+        continue-on-error: true
+        run: |
+          tornado_jars="$(find "${TORNADOVM_HOME}" -name '*.jar' -print0 | tr '\0' ':')"
+          java --enable-preview \
+               --module-path "${tornado_jars}:${BUILD_DIR}/mods" \
+               --add-modules ALL-MODULE-PATH \
+               -m demo.tornadovm/demo.tornadovm.VectorAddTornado \
+               --size ${VECTOR_SIZE} --iters ${VECTOR_ITERS} --warmup 2 \
+            | tee /tmp/result-300.txt
+
+      - name: Run CPU baseline
+        run: |
+          chmod +x demos/tornadovm-3/scripts/run-baseline.sh
+          demos/tornadovm-3/scripts/run-baseline.sh \
+            --size ${VECTOR_SIZE} --iters ${VECTOR_ITERS} --warmup 2 \
+            | tee /tmp/baseline-300.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-300
+          path: /tmp/result-300.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-300
+          path: /tmp/baseline-300.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ── TornadoVM 4.0.0 (JDK 21 + OpenCL) ──────────────────────────────
+  tornadovm-400:
+    name: TornadoVM 4.0.0 (JDK 21 / OpenCL)
+    runs-on: ubuntu-latest
+    env:
+      TORNADOVM_VERSION: "4.0.0"
+      TORNADOVM_JDK: "jdk21"
+      TORNADOVM_BACKEND: "opencl"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install OpenCL CPU Runtime (Intel oneAPI)
+        run: |
+          wget -q https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -O /tmp/intel-gpg.pub
+          sudo gpg --yes --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg /tmp/intel-gpg.pub
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install -y intel-oneapi-runtime-opencl ocl-icd-libopencl1 clinfo
+          echo "--- OpenCL devices ---"
+          clinfo --list || true
+
+      - name: Download TornadoVM 4.0.0 SDK
+        run: |
+          filename="tornadovm-${TORNADOVM_VERSION}-${TORNADOVM_JDK}-${TORNADOVM_BACKEND}-linux-amd64.zip"
+          url="https://github.com/beehive-lab/TornadoVM/releases/download/v${TORNADOVM_VERSION}-${TORNADOVM_JDK}/${filename}"
+          echo "Downloading: ${url}"
+          curl -fL "${url}" -o "/tmp/${filename}"
+          mkdir -p "${RUNNER_TEMP}/tornadovm"
+          unzip -q "/tmp/${filename}" -d "${RUNNER_TEMP}/tornadovm"
+          TORNADO_SDK="$(find "${RUNNER_TEMP}/tornadovm" -maxdepth 1 -type d -name 'tornadovm-*' -print -quit)"
+          echo "TORNADOVM_HOME=${TORNADO_SDK}" >> "${GITHUB_ENV}"
+          echo "Installed: ${TORNADO_SDK}"
+
+      - name: Compile VectorAdd demo
+        run: |
+          build_dir="build/tornado-ci-400"
+          src_dir="demos/tornadovm-4/src/tornado/java"
+          mkdir -p "${build_dir}/mods"
+          find "${src_dir}" -name "*.java" > "${build_dir}/sources.txt"
+          tornado_jars="$(find "${TORNADOVM_HOME}" -name '*.jar' -print0 | tr '\0' ':')"
+          javac --enable-preview --release 21 \
+                --module-path "${tornado_jars}" \
+                -d "${build_dir}/mods/demo.tornadovm" \
+                @"${build_dir}/sources.txt"
+          echo "BUILD_DIR=${build_dir}" >> "${GITHUB_ENV}"
+
+      - name: Run VectorAdd benchmark
+        continue-on-error: true
+        run: |
+          tornado_jars="$(find "${TORNADOVM_HOME}" -name '*.jar' -print0 | tr '\0' ':')"
+          java --enable-preview \
+               --module-path "${tornado_jars}:${BUILD_DIR}/mods" \
+               --add-modules ALL-MODULE-PATH \
+               -m demo.tornadovm/demo.tornadovm.VectorAddTornado \
+               --size ${VECTOR_SIZE} --iters ${VECTOR_ITERS} --warmup 2 \
+            | tee /tmp/result-400.txt
+
+      - name: Run CPU baseline
+        run: |
+          chmod +x demos/tornadovm-4/scripts/run-baseline.sh
+          demos/tornadovm-4/scripts/run-baseline.sh \
+            --size ${VECTOR_SIZE} --iters ${VECTOR_ITERS} --warmup 2 \
+            | tee /tmp/baseline-400.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-400
+          path: /tmp/result-400.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-400
+          path: /tmp/baseline-400.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ── GPULlama3 on all three versions ──────────────────────────────────
+  gpullama3-comparison:
+    name: GPULlama3 (${{ matrix.tornado_label }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tornado_label: "2.2.0 / JDK 21"
+            tornado_version: "2.2.0"
+            tornado_jdk: ""
+            java_version: "21"
+            sdk_filename: "tornadovm-2.2.0-opencl-linux-amd64.tar.gz"
+            sdk_url_tag: "v2.2.0"
+            archive_type: "tar"
+          - tornado_label: "3.0.0 / JDK 25"
+            tornado_version: "3.0.0"
+            tornado_jdk: "jdk25"
+            java_version: "25"
+            sdk_filename: "tornadovm-3.0.0-jdk25-opencl-linux-amd64.zip"
+            sdk_url_tag: "v3.0.0-jdk25"
+            archive_type: "zip"
+          - tornado_label: "4.0.0 / JDK 21"
+            tornado_version: "4.0.0"
+            tornado_jdk: "jdk21"
+            java_version: "21"
+            sdk_filename: "tornadovm-4.0.0-jdk21-opencl-linux-amd64.zip"
+            sdk_url_tag: "v4.0.0-jdk21"
+            archive_type: "zip"
+    env:
+      JVMCI_CONFIG_CHECK: "ignore"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java_version }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java_version }}
+
+      - name: Install OpenCL CPU Runtime (Intel oneAPI)
+        run: |
+          wget -q https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB -O /tmp/intel-gpg.pub
+          sudo gpg --yes --dearmor --output /usr/share/keyrings/oneapi-archive-keyring.gpg /tmp/intel-gpg.pub
+          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+            | sudo tee /etc/apt/sources.list.d/oneAPI.list
+          sudo apt-get update
+          sudo apt-get install -y intel-oneapi-runtime-opencl ocl-icd-libopencl1 clinfo
+          echo "--- OpenCL devices ---"
+          clinfo --list || true
+
+      - name: Download TornadoVM ${{ matrix.tornado_version }} SDK
+        run: |
+          url="https://github.com/beehive-lab/TornadoVM/releases/download/${{ matrix.sdk_url_tag }}/${{ matrix.sdk_filename }}"
+          echo "Downloading: ${url}"
+          curl -fL "${url}" -o "/tmp/tornadovm-sdk.${{ matrix.archive_type == 'tar' && 'tar.gz' || 'zip' }}"
+          mkdir -p "${RUNNER_TEMP}/tornadovm"
+          if [ "${{ matrix.archive_type }}" = "tar" ]; then
+            tar -xzf "/tmp/tornadovm-sdk.tar.gz" -C "${RUNNER_TEMP}/tornadovm"
+          else
+            unzip -q "/tmp/tornadovm-sdk.zip" -d "${RUNNER_TEMP}/tornadovm"
+          fi
+          TORNADO_SDK="$(find "${RUNNER_TEMP}/tornadovm" -maxdepth 1 -type d -name 'tornadovm-*' -print -quit)"
+          echo "TORNADOVM_HOME=${TORNADO_SDK}" >> "${GITHUB_ENV}"
+          echo "Installed: ${TORNADO_SDK}"
+
+      - name: Cache Llama 3.2 1B Model
+        id: cache-llama
+        uses: actions/cache@v4
+        with:
+          path: ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
+          key: llama-3.2-1b-instruct-f16-gguf-v2
+
+      - name: Download Llama 3.2 1B Instruct FP16
+        if: steps.cache-llama.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.llama/models
+          curl -fL --retry 3 -o ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+            "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-f16.gguf"
+
+      - name: Validate model file
+        run: |
+          MODEL=~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf
+          SIZE=$(stat -c%s "$MODEL" 2>/dev/null || stat -f%z "$MODEL")
+          MAGIC=$(xxd -l 4 -p "$MODEL")
+          echo "Model size: ${SIZE} bytes, magic: ${MAGIC}"
+          if [ "$SIZE" -lt 1000000000 ]; then
+            echo "ERROR: Model file too small (${SIZE} bytes), likely corrupted"
+            rm -f "$MODEL"
+            exit 1
+          fi
+
+      - name: Clone and build GPULlama3.java
+        run: |
+          git clone --depth 1 https://github.com/beehive-lab/GPULlama3.java.git /tmp/gpullama3
+          cd /tmp/gpullama3
+          ./mvnw -q -DskipTests package
+          echo "LLAMA_ROOT=/tmp/gpullama3" >> "${GITHUB_ENV}"
+
+      - name: Run GPULlama3 inference
+        continue-on-error: true
+        run: |
+          cd /tmp/gpullama3
+          export JAVA_HOME="${JAVA_HOME}"
+          python3 llama-tornado \
+            --opencl \
+            --model ~/.llama/models/Llama-3.2-1B-Instruct-f16.gguf \
+            --prompt "Tell me a short joke about Java programming." \
+            --max-tokens 64 \
+            --heap-min 4g --heap-max 4g \
+            --gpu-memory 7GB \
+            --instruct \
+            2>&1 | tee /tmp/gpullama3-result-${{ matrix.tornado_version }}.txt
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpullama3-${{ matrix.tornado_version }}
+          path: /tmp/gpullama3-result-${{ matrix.tornado_version }}.txt
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ── Summary ──────────────────────────────────────────────────────────
+  summary:
+    name: Comparison Summary
+    needs: [tornadovm-220, tornadovm-300, tornadovm-400, gpullama3-comparison]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: results
+
+      - name: Print comparison
+        run: |
+          echo "╔══════════════════════════════════════════════════════════════╗"
+          echo "║          TornadoVM Version Comparison Results               ║"
+          echo "╠══════════════════════════════════════════════════════════════╣"
+          echo "║                                                              ║"
+          echo "║  VectorAdd (1M elements, Intel OpenCL CPU)                   ║"
+          echo "║                                                              ║"
+          echo "╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+
+          for version in 220 300 400; do
+            echo "=== TornadoVM ${version} ==="
+            if [ -f "results/results-${version}/result-${version}.txt" ]; then
+              cat "results/results-${version}/result-${version}.txt"
+            else
+              echo "  (no results - run may have failed)"
+            fi
+            if [ -f "results/baseline-${version}/baseline-${version}.txt" ]; then
+              cat "results/baseline-${version}/baseline-${version}.txt"
+            fi
+            echo ""
+          done
+
+          echo "╔══════════════════════════════════════════════════════════════╗"
+          echo "║  GPULlama3 Inference (Llama 3.2 1B, Intel OpenCL CPU)       ║"
+          echo "╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+
+          for version in 2.2.0 3.0.0 4.0.0; do
+            echo "=== GPULlama3 + TornadoVM ${version} ==="
+            if [ -f "results/gpullama3-${version}/gpullama3-result-${version}.txt" ]; then
+              tail -5 "results/gpullama3-${version}/gpullama3-result-${version}.txt"
+            else
+              echo "  (no results - run may have failed)"
+            fi
+            echo ""
+          done
